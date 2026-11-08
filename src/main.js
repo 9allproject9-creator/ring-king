@@ -19,6 +19,8 @@ import { ShopScreen } from './screens/shop.js';
 import { AchievementsScreen, RecordsScreen } from './screens/records.js';
 import { TrainingScreen, JumpRopeScreen } from './screens/training.js';
 import { checkAchievements } from './data/achievements.js';
+import { TutorialScreen } from './screens/tutorial.js';
+import { SettingsScreen } from './screens/settings.js';
 import { getOpponent, leagueOf } from './data/opponents/index.js';
 import { getItem } from './data/shop.js';
 import { applyResult, storyBefore, storyAfter, markStory, triesOf } from './game/career.js';
@@ -31,6 +33,11 @@ class App {
     this.ui = document.getElementById('ui');
     this.save = new SaveStore();
     this.settings = this.save.data.settings;
+    // 기기의 "동작 줄이기"를 처음 한 번 따른다
+    if (!this.settings.rmInit) {
+      this.settings.rmInit = true;
+      try { this.settings.reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* 무시 */ }
+    }
     this.stage = new Stage3D(document.getElementById('gl'));
     this.view = new View(this.canvas);
     this.view.onResize = (v) => this.stage.resize(v);
@@ -56,7 +63,10 @@ class App {
       records: new RecordsScreen(this),
       training: new TrainingScreen(this),
       rope: new JumpRopeScreen(this),
+      tutorial: new TutorialScreen(this),
+      settings: new SettingsScreen(this),
     };
+    this.applySettings();
     this.current = null;
     this.actions.onUi((code, e) => this.current && this.current.onUi && this.current.onUi(code, e));
     const unlock = () => this.audio.unlock();
@@ -166,6 +176,17 @@ class App {
       loseAdvice: loseAdvice(getOpponent(ctx.oppId), Math.max(1, triesOf(d, ctx.oppId))),
       extra: extra.length ? extra.map((t) => { const e = document.createElement('div'); e.className = 'bubble'; e.style.fontSize = '17px'; e.textContent = t; return e; }) : null,
     });
+  }
+
+  applySettings() {
+    const s = this.settings;
+    this.audio.setVolumes(s.sfx, s.music);
+    this.keyboard.setKeys(s.keys);
+    const dpr = window.devicePixelRatio || 1;
+    const max = s.quality === 'high' ? 2 : s.quality === 'low' ? 1 : Math.min(2, dpr > 1.5 && matchMedia('(pointer: coarse)').matches ? 1.5 : 2);
+    this.stage.setQuality(max);
+    document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
+    this.touch && this.touch.refresh();
   }
 
   // 도전 과제 확인 → 알림

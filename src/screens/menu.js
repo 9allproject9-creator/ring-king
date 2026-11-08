@@ -25,7 +25,8 @@ export class MenuScreen extends Screen {
     if (d.career.cleared) {
       list.splice(1, 0, item('👑', '클리어 후 도전', '방어전 · 보스 러시 · 타임 어택', () => app.go('modes'), 'red'));
     }
-    list.push(item('⚙️', '설정', app.save.ok ? '' : '저장 안 됨', () => app.go('settings'), 'secondary'));
+    list.push(item('🎓', '튜토리얼', '조작 다시 배우기', () => app.go('tutorial'), 'secondary'));
+    list.push(item('⚙️', '설정', app.save.ok ? '' : '⚠ 저장 안 됨', () => app.go('settings'), 'secondary'));
     this.mount(el('div', { class: 'screen' }, [
       topBar(app, null, null),
       el('div', { class: 'col fade-in', style: 'align-items:center;gap:14px;margin-top:40px' }, [
