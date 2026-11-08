@@ -35,8 +35,7 @@ export class Fight {
     this.down = null;
     this.clinch = null;
     this.result = null;
-    this.gap = 0; // 기본 거리보다 더 떨어진 정도(m)
-    this.orbit = 0; // 상대 주위를 돈 각도(rad)
+    this.resetPositions(); // gap: 기본 거리보다 더 떨어진 정도(m), orbit: 상대 주위를 돈 각도(rad)
     this.lastPlayerHit = null;
     this.stats = {
       thrown: 0, landed: 0, blocked: 0, whiffs: 0, counters: 0, interrupts: 0, dodges: 0,
@@ -136,26 +135,100 @@ export class Fight {
     }
   }
 
-  // 링 안 이동: 물러나기·다가가기·돌기. 상대는 걸어서 다시 붙는다.
+  // 링 안 이동: 나와 상대 모두 링 안의 실제 위치(m)를 가진다.
+  // W 다가가기, S 물러나기, A·D 옆걸음(상대 주위를 돎). 상대는 걸어서 따라오고, 로프 밖으로는 못 나간다.
+  resetPositions() {
+    const M = CONFIG.player.move;
+    this.op = { x: 0, z: -M.baseDist / 2 };
+    this.pp = { x: 0, z: M.baseDist / 2 };
+    this.gap = 0;
+    this.orbit = 0;
+  }
+
+  clampRing(pt) {
+    const h = CONFIG.player.move.ringHalf;
+    pt.x = Math.max(-h, Math.min(h, pt.x));
+    pt.z = Math.max(-h, Math.min(h, pt.z));
+  }
+
   updateMove(input) {
     const p = this.player;
     const o = this.opp;
     const M = CONFIG.player.move;
     const s = DT / 1000;
+    const pp = this.pp;
+    const op = this.op;
+    let dx = pp.x - op.x;
+    let dz = pp.z - op.z;
+    let d = Math.hypot(dx, dz) || M.baseDist;
+    let ux = dx / d;
+    let uz = dz / d;
     const free = p.state === 'idle' || p.state === 'guard' || p.state === 'guardRelease';
+    const back = !!(input & IN.MOVE_BACK) && p.stamina > 1;
     if (free) {
-      if (input & IN.MOVE_BACK && p.stamina > 1) {
-        this.gap = Math.min(M.maxGap, this.gap + M.backSpeed * s);
+      let radial = 0;
+      if (back) {
+        radial += M.backSpeed * s;
         p.stamina = Math.max(0, p.stamina - M.staminaPerSec * s);
       }
-      if (input & IN.MOVE_FWD) this.gap = Math.max(0, this.gap - M.fwdSpeed * s);
-      if (input & IN.CIRCLE_L) this.orbit += M.circleSpeed * s;
-      if (input & IN.CIRCLE_R) this.orbit -= M.circleSpeed * s;
+      if (input & IN.MOVE_FWD) radial -= M.fwdSpeed * s;
+      let side = 0;
+      if (input & IN.CIRCLE_L) side += M.sideSpeed * s;
+      if (input & IN.CIRCLE_R) side -= M.sideSpeed * s;
+      if (radial || side) {
+        // 내가 보는 방향 = 상대 쪽(-u). 내 왼쪽 = (fz, -fx)
+        const fx = -ux, fz = -uz;
+        const lx = fz, lz = -fx;
+        const nd = Math.max(M.baseDist, Math.min(M.baseDist + M.maxGap, d + radial));
+        // 옆걸음은 거리를 유지하며 돈다
+        let nx = op.x + ux * nd + lx * side;
+        let nz = op.z + uz * nd + lz * side;
+        const k = nd / (Math.hypot(nx - op.x, nz - op.z) || 1);
+        pp.x = op.x + (nx - op.x) * k;
+        pp.z = op.z + (nz - op.z) * k;
+        this.clampRing(pp);
+      }
     }
     // 상대는 공격 중이 아닐 때 걸어서 다가온다
-    if (this.gap > 0 && !(input & IN.MOVE_BACK) && o.state !== 'tell' && o.state !== 'active') {
-      this.gap = Math.max(0, this.gap - M.oppCloseSpeed * s);
+    dx = pp.x - op.x;
+    dz = pp.z - op.z;
+    d = Math.hypot(dx, dz) || M.baseDist;
+    if (d > M.baseDist + 1e-4 && o.state !== 'tell' && o.state !== 'active' && o.state !== 'down' && o.state !== 'ko') {
+      const step = Math.min(d - M.baseDist, M.oppCloseSpeed * s);
+      op.x += (dx / d) * step;
+      op.z += (dz / d) * step;
+      this.clampRing(op);
     }
+    // 너무 가까우면(로프에 막혀서) 나를 살짝 밀어낸다
+    dx = pp.x - op.x;
+    dz = pp.z - op.z;
+    d = Math.hypot(dx, dz) || 0.0001;
+    if (d < M.baseDist) {
+      const nx = op.x + (dx / d) * M.baseDist;
+      const nz = op.z + (dz / d) * M.baseDist;
+      pp.x = nx;
+      pp.z = nz;
+      this.clampRing(pp);
+      dx = pp.x - op.x;
+      dz = pp.z - op.z;
+      d = Math.hypot(dx, dz);
+      if (d < M.baseDist - 1e-6) {
+        // 코너에 몰리면 상대가 물러나 거리를 맞춘다
+        op.x = pp.x - (dx / (d || 1)) * M.baseDist;
+        op.z = pp.z - (dz / (d || 1)) * M.baseDist;
+        this.clampRing(op);
+        d = Math.hypot(pp.x - op.x, pp.z - op.z);
+      }
+    }
+    this.gap = Math.max(0, d - M.baseDist);
+    // 각도는 끊기지 않게 이어 붙인다(화면이 갑자기 한 바퀴 도는 일 없도록)
+    const ang = Math.atan2(pp.x - op.x, pp.z - op.z);
+    let da = ang - (this.orbitRaw ?? ang);
+    while (da > Math.PI) da -= Math.PI * 2;
+    while (da < -Math.PI) da += Math.PI * 2;
+    this.orbit += da;
+    this.orbitRaw = ang;
+    this.atRopes = Math.abs(pp.x) >= M.ringHalf - 0.01 || Math.abs(pp.z) >= M.ringHalf - 0.01;
   }
 
   get outOfReach() {
@@ -379,7 +452,8 @@ export class Fight {
     p.action = null;
     p.buffer = null;
     this.opp.roundReset(this);
-    this.gap = 0;
+    this.resetPositions();
+    this.orbitRaw = undefined;
     this.round++;
     this.roundTime = this.roundMsCfg;
     this.phase = 'intro';

@@ -71,7 +71,7 @@ export class FightView3D {
     if (this.ref) { this.stage.scene.remove(this.ref.root); this.ref.dispose(); this.ref = null; }
     if (!fight.training) {
       this.ref = new Fighter3D(REF_LOOK);
-      this.ref.root.position.set(1.9, 0, -0.9);
+      this.ref.root.position.set(2.9, 0, -2.9);
       this.refAnim = new OpponentAnimator({ id: 'ref', look: REF_LOOK });
       this.refState = { state: 'idle', t: 0, dur: 1e9, guardUp: false, pos: 0, fromPos: 0, hp: 1, maxHp: 1, atk: null, lastHitDir: 0 };
       this.stage.arena.group.add(this.ref.root);
@@ -103,6 +103,7 @@ export class FightView3D {
     for (const fl of this.flashes || []) { this.stage.scene.remove(fl.s); fl.s.material.dispose(); }
     if (this.ref) { this.stage.arena.group.remove(this.ref.root); this.ref.dispose(); this.ref = null; }
     this.stage.arena.group.rotation.y = 0;
+    this.stage.arena.group.position.set(0, 0, 0);
   }
 
   timeScale() {
@@ -426,9 +427,20 @@ export class FightView3D {
     this.fp.update(dt, f.player, targetCam, frozen, f.phase, this.settings);
     const cam = st.camera;
     // 링 안 이동: 거리만큼 뒤로, 돈 만큼 경기장이 반대로 돈다(= 내가 상대 주위를 돎)
-    this.gapS = (this.gapS || 0) + (f.gap - (this.gapS || 0)) * Math.min(1, dt / 60);
-    this.orbitS = (this.orbitS || 0) + (f.orbit - (this.orbitS || 0)) * Math.min(1, dt / 60);
-    st.arena.group.rotation.y = this.orbitS;
+    // 링 안 실제 위치: 상대가 화면 가운데(원점), 내가 +z 쪽에 오도록 경기장 전체를 옮기고 돌린다
+    const km = Math.min(1, dt / 60);
+    this.gapS = (this.gapS || 0) + (f.gap - (this.gapS || 0)) * km;
+    this.orbitS = (this.orbitS ?? f.orbit) + (f.orbit - (this.orbitS ?? f.orbit)) * km;
+    if (!this.opS) this.opS = { x: f.op.x, z: f.op.z };
+    this.opS.x += (f.op.x - this.opS.x) * km;
+    this.opS.z += (f.op.z - this.opS.z) * km;
+    {
+      const a = -this.orbitS;
+      const c = Math.cos(a), sn = Math.sin(a);
+      const x = -this.opS.x, z = -this.opS.z;
+      st.arena.group.rotation.y = a;
+      st.arena.group.position.set(x * c + z * sn, 0, -x * sn + z * c);
+    }
     cam.position.z += this.gapS + (st.view && st.view.portrait ? 0.75 : 0);
     const moving = Math.abs(f.orbit - this.orbitS) > 0.002 || Math.abs(f.gap - this.gapS) > 0.002;
     if (moving && !this.settings.reduceMotion) cam.position.y += Math.abs(Math.sin(this.time / 110)) * 0.025;
@@ -483,9 +495,10 @@ export class FightView3D {
       this.refState.t += dt;
       const rp = this.refAnim.update(dt, this.refState, 0);
       const d0 = f.down;
-      const target = d0 ? new THREE.Vector3(0.9, 0, -0.35) : new THREE.Vector3(1.9, 0, -0.9);
+      // 링 좌표: 평소엔 중립 코너 근처, 다운되면 쓰러진 선수 옆으로
+      const target = d0 ? new THREE.Vector3(f.op.x + 0.9, 0, f.op.z - 0.3) : new THREE.Vector3(2.9, 0, -2.9);
       this.ref.root.position.lerp(target, Math.min(1, dt / 300));
-      this.ref.root.rotation.y = Math.atan2(-this.ref.root.position.x, -this.ref.root.position.z + 0.5) * 0.6;
+      this.ref.root.rotation.y = Math.atan2(f.op.x - this.ref.root.position.x, f.op.z - this.ref.root.position.z);
       rp.glx = 0.9; rp.gly = -0.3; rp.grx = -0.9; rp.gry = -0.3; rp.glz = 1; rp.grz = 1;
       if (d0 && d0.count > 0) {
         const ph = ((d0.t - 900) % 1000) / 1000;

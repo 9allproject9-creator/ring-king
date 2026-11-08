@@ -36,11 +36,13 @@ export const CONFIG = {
     move: {
       backSpeed: 1.1, // m/s 물러나기
       fwdSpeed: 1.6, // m/s 다가가기
-      circleSpeed: 0.9, // rad/s 상대 주위 돌기
-      maxGap: 1.2, // 이만큼 물러나면 로프
+      sideSpeed: 1.2, // m/s 옆걸음(상대 주위 돌기)
+      maxGap: 2.4, // 가장 멀리 떨어질 수 있는 거리(기본 거리 위로)
+      baseDist: 1.62, // 서로 주먹이 닿는 기본 거리(m)
+      ringHalf: 3.85, // 링 안에서 설 수 있는 반 폭(m, 로프 안쪽)
       punchRange: 0.35, // 이보다 멀면 내 펀치가 안 닿음
       attackRange: 0.45, // 이보다 멀면 상대 공격이 안 닿음(헛방 보상은 없음)
-      oppCloseSpeed: 0.9, // 상대가 다가오는 속도
+      oppCloseSpeed: 0.8, // 상대가 걸어서 따라오는 속도(물러나는 동안에도)
       staminaPerSec: 6, // 물러날 때 스태미나
     },
   },

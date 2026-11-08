@@ -13,7 +13,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const AUTOPLAY = `(() => {
   if (window.__auto) return;
   const key = (code, hold = 40) => { window.dispatchEvent(new KeyboardEvent('keydown', { code })); setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { code })), hold); };
-  const D = { L: 'KeyA', R: 'KeyD', duck: 'KeyS' };
+  const D = { L: 'KeyQ', R: 'KeyE', duck: 'KeyF' };
   let last = 0, guard = false, combo = 0;
   window.__auto = setInterval(() => {
     const s = window.__app && window.__app.current;
@@ -24,11 +24,11 @@ const AUTOPLAY = `(() => {
     if (f.phase !== 'fight') return;
     if (o.state === 'tell' && !o.fake && o.atk) {
       const rem = o.dur - o.t;
-      if (o.atk.avoid.length === 0) { if (!guard && rem < 500) { window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' })); guard = true; } return; }
+      if (o.atk.avoid.length === 0) { if (!guard && rem < 500) { window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' })); guard = true; } return; }
       if (rem < 175 && rem > 70 && p.actionable && now - last > 150) { key(D[o.atk.avoid[0]]); last = now; }
       return;
     }
-    if (guard && o.state !== 'tell') { window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' })); guard = false; }
+    if (guard && o.state !== 'tell') { window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ShiftLeft' })); guard = false; }
     const open = ['whiff', 'shoved', 'counterStun', 'tired', 'taunt', 'guardBroken'].includes(o.state) || (o.state === 'idle' && !o.guardUp && f.training);
     if (open && p.actionable && now - last > 90) {
       if (p.stars >= 2 && o.dur - o.t > 450) key('Space');
@@ -67,11 +67,13 @@ async function desktop(browser, logs) {
       const t = window.__app.screens.tutorial.st;
       const f = window.__app.current.fight;
       if (!f || !t) return;
-      if (t.step === 0 && f.player.actionable) k(['KeyJ', 'KeyK', 'KeyL'][n++ % 3]);
-      if (t.step === 5 && f.player.actionable && f.player.stars > 0 && ['whiff', 'idle'].includes(f.opp.state)) k('Space');
+      if (t.step === 0 && !window.__walk) { window.__walk = 1; window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' })); }
+      if (t.step >= 1 && window.__walk === 1) { window.__walk = 2; window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' })); }
+      if (t.step === 1 && f.player.actionable && f.gap < 0.3) k(['KeyJ', 'KeyK', 'KeyL'][n++ % 3]);
+      if (t.step === 6 && f.player.actionable && f.player.stars > 0 && ['whiff', 'idle'].includes(f.opp.state)) k('Space');
     }, 300);
   });
-  await waitFor(page, () => window.__app.screens.tutorial.st.step >= 3, 90000);
+  await waitFor(page, () => window.__app.screens.tutorial.st.step >= 4, 90000);
   await page.screenshot({ path: `${OUT}/04_tutorial_counter.png` });
   await waitFor(page, () => window.__app.currentName !== 'fight' || window.__app.screens.fight.ended, 150000);
   await page.evaluate(() => clearInterval(window.__tut));

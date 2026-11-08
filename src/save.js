@@ -1,6 +1,6 @@
 // 저장: localStorage. 버전 번호 + 마이그레이션. 저장이 안 돼도(사생활 보호 모드 등) 게임은 메모리로 계속 돈다.
 export const SAVE_KEY = 'ringKing.save';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export function defaultSave() {
   return {
@@ -42,6 +42,12 @@ const MIGRATIONS = {
     s.lastReplay = s.lastReplay || null;
     s.settings = { ...defaultSave().settings, ...(s.settings || {}) };
     s.version = 3;
+    return s;
+  },
+  // v3 → v4: 조작이 바뀜(WASD = 링 안 걷기, Q/E/F = 피하기). 옛날에 바꿔 둔 키는 겹치므로 기본값으로
+  3: (s) => {
+    if (s.settings) s.settings.keys = null;
+    s.version = 4;
     return s;
   },
 };

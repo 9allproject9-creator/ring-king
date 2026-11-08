@@ -1,21 +1,25 @@
 // 키보드 → 행동. 키 바꾸기는 settings.keys(행동 → 코드 배열)로.
 export const DEFAULT_KEYS = {
-  dodgeL: ['KeyA'],
-  dodgeR: ['KeyD'],
-  duck: ['KeyS'],
-  guard: ['KeyW'],
+  fwd: ['KeyW'],
+  back: ['KeyS'],
+  circleL: ['KeyA'],
+  circleR: ['KeyD'],
+  dodgeL: ['KeyQ', 'ArrowLeft'],
+  dodgeR: ['KeyE', 'ArrowRight'],
+  duck: ['KeyF', 'ArrowDown'],
+  guard: ['ShiftLeft', 'KeyI', 'ArrowUp'],
   jab: ['KeyJ', 'KeyZ'],
   straight: ['KeyK', 'KeyX'],
   upper: ['KeyL', 'KeyC'],
   special: ['Space'],
-  circleL: ['KeyQ', 'ArrowLeft'],
-  circleR: ['KeyE', 'ArrowRight'],
-  fwd: ['ArrowUp'],
-  back: ['ArrowDown'],
   pause: ['Escape', 'KeyP'],
 };
 
 export const ACTION_LABELS = {
+  fwd: '앞으로 걷기',
+  back: '뒤로 걷기(물러나기)',
+  circleL: '왼쪽으로 걷기(상대 주위 돌기)',
+  circleR: '오른쪽으로 걷기(상대 주위 돌기)',
   dodgeL: '왼쪽 피하기',
   dodgeR: '오른쪽 피하기',
   duck: '숙이기',
@@ -24,10 +28,6 @@ export const ACTION_LABELS = {
   straight: '스트레이트(오른손)',
   upper: '어퍼컷',
   special: '필살 펀치',
-  circleL: '왼쪽으로 돌기',
-  circleR: '오른쪽으로 돌기',
-  fwd: '앞으로 다가가기',
-  back: '뒤로 물러나기',
   pause: '일시정지',
 };
 
@@ -35,7 +35,7 @@ export function keyName(code) {
   if (!code) return '-';
   if (code.startsWith('Key')) return code.slice(3);
   if (code.startsWith('Digit')) return code.slice(5);
-  const map = { Space: 'Space', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Escape: 'Esc', Enter: 'Enter', ShiftLeft: '왼Shift', ShiftRight: '오른Shift', ControlLeft: '왼Ctrl', Semicolon: ';', Comma: ',', Period: '.', Slash: '/' };
+  const map = { Space: 'Space', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Escape: 'Esc', Enter: 'Enter', ShiftLeft: 'Shift', ShiftRight: '오른Shift', ControlLeft: '왼Ctrl', Semicolon: ';', Comma: ',', Period: '.', Slash: '/' };
   return map[code] || code;
 }
 

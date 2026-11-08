@@ -159,10 +159,14 @@ p { line-height: 1.55; margin: 6px 0; }
 #touch .tb.small .ic { font-size: 20px; }
 #touch .tb.pausekey { width: calc(var(--tb, 76px) * 0.72); height: calc(var(--tb, 76px) * 0.72); justify-self: center; align-self: center; font-size: 12px; }
 #touch .pad.right { grid-template-columns: repeat(3, auto); }
+#touch .pad.left { grid-template-columns: repeat(3, auto); }
+#touch .pad.move { left: max(14px, env(safe-area-inset-left)); bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--tb, 76px) + 12px); grid-template-columns: repeat(3, auto); grid-template-areas: ". u ." "l d r"; gap: 4px; }
+#touch .p-u { grid-area: u; } #touch .p-l { grid-area: l; } #touch .p-d { grid-area: d; } #touch .p-r { grid-area: r; }
 #touch.portrait { --tb: min(var(--tbp, 66px), 18vw) !important; }
 #touch.portrait .pad { bottom: max(14px, env(safe-area-inset-bottom)); gap: 8px; }
 #touch.portrait .pad.left { left: 50%; transform: translateX(-50%); }
-#touch.portrait .pad.right { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--tb) * 1.72 + 22px); }
+#touch.portrait .pad.right { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--tb) + 12px); }
+#touch.portrait .pad.move { left: 50%; transform: translateX(-50%); bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--tb) * 2.8 + 30px); }
 #touch.portrait .rotate-tip { top: 96px; }
 #touch .tb { min-width: 64px; min-height: 64px; }
 #touch .tb.small, #touch .tb.pausekey { min-width: 52px; min-height: 52px; }

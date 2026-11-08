@@ -25,11 +25,12 @@ export class TutorialScreen extends Screen {
     const K = (a) => keyName((k[a] || [])[0]);
     const touch = matchMedia('(pointer: coarse)').matches;
     const L = touch
-      ? { jab: '잽', straight: '스트', upper: '어퍼', guard: '가드', dodgeL: '←', dodgeR: '→', duck: '↓', special: '필살' }
-      : { jab: K('jab'), straight: K('straight'), upper: K('upper'), guard: K('guard'), dodgeL: K('dodgeL'), dodgeR: K('dodgeR'), duck: K('duck'), special: K('special') };
-    const st = { step: 0, punched: new Set(), t: 0, done: false, msgT: 0 };
+      ? { walk: '왼쪽 십자 버튼', jab: '잽', straight: '스트', upper: '어퍼', guard: '가드', dodgeL: '왼피하기', dodgeR: '오른피하기', duck: '숙이기', special: '필살' }
+      : { walk: `${K('fwd')}·${K('circleL')}·${K('back')}·${K('circleR')}`, jab: K('jab'), straight: K('straight'), upper: K('upper'), guard: K('guard'), dodgeL: K('dodgeL'), dodgeR: K('dodgeR'), duck: K('duck'), special: K('special') };
+    const st = { step: 0, punched: new Set(), t: 0, done: false, msgT: 0, walked: 0, last: null };
     this.st = st;
     const steps = [
+      { text: `링 안을 걸어 보자! ${L.walk}로 앞·옆·뒤로 움직여 봐라. 옆으로 걸으면 상대 주위를 돈다.`, check: () => st.walked >= 2.5 },
       { text: `펀치부터! 잽(${L.jab}), 스트레이트(${L.straight}), 어퍼컷(${L.upper})을 한 번씩 맞혀 봐라.`, check: () => st.punched.size >= 3 },
       { text: `몸을 낮추고 칠 때는 피할 수 없다. 가드(${L.guard})를 꾹 누르고 막아라!`, attack: 'body', check: (e) => e.type === 'playerBlock' },
       { text: `잘 봐라. 오른쪽 팔을 크게 젖히면 반대쪽, 왼쪽(${L.dodgeL})으로 피해!`, attack: 'hookL', check: (e) => e.type === 'dodge' },
@@ -74,7 +75,7 @@ export class TutorialScreen extends Screen {
         r.coachLine = null;
         this.curText = s.text;
         for (const e of events) {
-          if (e.type === 'hit' && st.step === 0) st.punched.add(e.punch);
+          if (e.type === 'hit' && st.step === 1) st.punched.add(e.punch);
           if (s.check(e, f)) {
             st.step++;
             st.msgT = 1200;
@@ -83,7 +84,12 @@ export class TutorialScreen extends Screen {
             break;
           }
         }
-        if (st.step === 0 && st.punched.size >= 3) { st.step = 1; st.msgT = 1200; app.audio.sfx('star'); }
+        if (f.pp) {
+          if (st.last) st.walked += Math.hypot(f.pp.x - st.last.x, f.pp.z - st.last.z);
+          st.last = { x: f.pp.x, z: f.pp.z };
+        }
+        if (st.step === 0 && st.walked >= 2.5) { st.step = 1; st.msgT = 1200; app.audio.sfx('star'); }
+        if (st.step === 1 && st.punched.size >= 3) { st.step = 2; st.msgT = 1200; app.audio.sfx('star'); }
         const cur = steps[st.step];
         if (!cur) return;
         const o = f.opp;

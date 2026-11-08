@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { VENUES } from '../render/ring.js';
 import { toonMat, outlineMat, GEO, radialTex } from './toon.js';
 
-const RING = 3.0; // 링 반 폭(m)
+export const RING = 4.2; // 링 반 폭(m) — 넓혀서 링 안을 걸어 다닐 수 있게
 const ROPE_H = [0.5, 0.9, 1.3];
 
 function seeded(seed) {
@@ -58,10 +58,10 @@ export class Arena {
       c.fillStyle = gr;
       c.fillRect(0, 0, w, h);
     });
-    const wall = new THREE.Mesh(new THREE.CylinderGeometry(22, 22, 16, 32, 1, true), new THREE.MeshBasicMaterial({ map: wallTex, side: THREE.BackSide }));
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(26, 26, 16, 32, 1, true), new THREE.MeshBasicMaterial({ map: wallTex, side: THREE.BackSide }));
     wall.position.y = 6;
     g.add(wall);
-    const ground = new THREE.Mesh(new THREE.CircleGeometry(22, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(v.wallTop).multiplyScalar(0.6) }));
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(26, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(v.wallTop).multiplyScalar(0.6) }));
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -1.0;
     g.add(ground);
@@ -154,7 +154,7 @@ export class Arena {
     const rows = Math.max(0, v.crowdRows) * 2;
     const spots = [];
     for (let r = 0; r < rows; r++) {
-      const radius = 6.5 + r * 1.05;
+      const radius = 8.2 + r * 1.05;
       const y = -0.6 + r * 0.55;
       const n = Math.floor(radius * 4.2);
       for (let i = 0; i < n; i++) {
@@ -196,16 +196,16 @@ export class Arena {
     this.bannerTex = banner;
     for (const x of [-4.5, 4.5]) {
       const b = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.8), new THREE.MeshBasicMaterial({ map: banner }));
-      b.position.set(x, 4.2, -9.5);
+      b.position.set(x * 1.3, 4.6, -12);
       g.add(b);
     }
     if (venueId === 'world' || venueId === 'stadium') {
       // 큰 전광판
       const scr = new THREE.Mesh(new THREE.BoxGeometry(6, 2.6, 0.3), new THREE.MeshBasicMaterial({ color: 0x0a0a14 }));
-      scr.position.set(0, 7, -11);
+      scr.position.set(0, 7.5, -14);
       g.add(scr);
       const glow = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 2.2), new THREE.MeshBasicMaterial({ map: banner, color: 0xffffff }));
-      glow.position.set(0, 7, -10.84);
+      glow.position.set(0, 7.5, -13.84);
       g.add(glow);
     }
     if (venueId === 'gym' || venueId === 'training') {
@@ -214,7 +214,7 @@ export class Arena {
       for (const x of [-6, 6]) {
         const bag = new THREE.Mesh(GEO.capsule, bagMat);
         bag.scale.set(0.6, 1.2, 0.6);
-        bag.position.set(x, 1.4, -6);
+        bag.position.set(x * 1.4, 1.4, -7.5);
         g.add(bag);
         const bo = new THREE.Mesh(GEO.capsule, ol);
         bo.scale.copy(bag.scale);
@@ -237,7 +237,7 @@ export class Arena {
     // 빛 기둥(가산 혼합 원뿔)
     const coneMat = new THREE.MeshBasicMaterial({ color: 0xfff2d0, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     this.cones = [];
-    for (const [x, z] of [[-2, -2], [2, -2], [-2, 1.5], [2, 1.5]]) {
+    for (const [x, z] of [[-2.8, -2.8], [2.8, -2.8], [-2.8, 2.4], [2.8, 2.4]]) {
       const c = new THREE.Mesh(new THREE.ConeGeometry(1.6, 8, 20, 1, true), coneMat.clone());
       c.position.set(x * 0.8, 4.6, z * 0.8);
       g.add(c);
@@ -327,7 +327,7 @@ export class Arena {
         f.s.visible = false;
         if (Math.random() < rate * 0.015) {
           const a = Math.PI + (Math.random() - 0.5) * 2.6;
-          const r = 7 + Math.random() * 6;
+          const r = 9 + Math.random() * 6;
           f.s.position.set(Math.cos(a) * r * 0.9, 0.5 + Math.random() * 4, Math.sin(a) * r);
           f.max = f.life = 70 + Math.random() * 110;
           f.s.visible = true;

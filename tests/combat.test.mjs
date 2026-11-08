@@ -162,7 +162,7 @@ test('가만히 있으면 스태미나가 빠르게 회복', () => {
 
 test('링 안 이동: 물러나면 펀치가 안 닿고, 상대 공격도 안 닿지만 헛방 보상은 없다', () => {
   const f = toFight(makeFight());
-  for (let i = 0; i < 40; i++) f.step(IN.MOVE_BACK);
+  for (let i = 0; i < 150; i++) f.step(IN.MOVE_BACK); // 상대도 따라오므로 넉넉히
   assert.ok(f.gap > 0.5);
   const ev = collect(f, 12, (f, i) => (i === 0 ? IN.JAB | IN.MOVE_BACK : IN.MOVE_BACK));
   assert.ok(ev.some((e) => e.type === 'whiff' && e.far));
@@ -174,15 +174,26 @@ test('링 안 이동: 물러나면 펀치가 안 닿고, 상대 공격도 안 �
   assert.equal(f.player.stars, 0);
 });
 
-test('물러나기를 멈추면 상대가 다가와 다시 붙는다, 돌기는 각도만 바뀐다', () => {
+test('물러나기를 멈추면 상대가 걸어와 다시 붙는다, 옆걸음은 거리를 유지하며 돈다', () => {
   const f = toFight(makeFight());
-  for (let i = 0; i < 40; i++) f.step(IN.MOVE_BACK);
+  for (let i = 0; i < 150; i++) f.step(IN.MOVE_BACK); // 상대도 따라오므로 넉넉히
   const g = f.gap;
-  for (let i = 0; i < 120; i++) f.step(0);
-  assert.ok(f.gap < g && f.gap === 0);
+  for (let i = 0; i < 200; i++) f.step(0);
+  assert.ok(f.gap < g && f.gap < 1e-6);
   for (let i = 0; i < 60; i++) f.step(IN.CIRCLE_L);
-  assert.ok(f.orbit > 0.8);
-  assert.equal(f.gap, 0);
+  assert.ok(Math.abs(Math.hypot(f.pp.x - f.op.x, f.pp.z - f.op.z) - 1.62) < 0.02);
+  assert.ok(Math.abs(f.orbit) > 0.4, `orbit ${f.orbit}`);
+  assert.ok(f.gap < 1e-6);
+});
+
+test('링 안 위치: 로프 밖으로는 못 나가고, 물러나면 상대가 실제로 걸어서 쫓아온다', () => {
+  const f = toFight(makeFight());
+  const oz = f.op.z;
+  for (let i = 0; i < 600; i++) f.step(IN.MOVE_BACK);
+  assert.ok(f.pp.z <= 3.85 + 1e-9, '로프 안');
+  for (let i = 0; i < 240; i++) f.step(0);
+  assert.ok(f.op.z > oz + 0.5, '상대가 따라옴');
+  assert.ok(f.gap < 0.05);
 });
 
 test('같은 펀치 3번 연속이면 막힐 확률이 오른다', () => {

@@ -16,7 +16,7 @@ export class Stage3D {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.setClearColor(0x07070d, 1);
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0x07070d, 14, 30);
+    this.scene.fog = new THREE.Fog(0x07070d, 18, 36);
     this.camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.03, 80);
     this.baseFov = 52;
     this.scene.add(this.camera);

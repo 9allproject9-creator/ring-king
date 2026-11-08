@@ -1,11 +1,15 @@
 // 터치 조작: 화면 왼쪽 아래 = 피하기·숙이기(+링 이동), 오른쪽 아래 = 펀치·가드·필살. 진동 대신 눌림 표시.
+// 걷기 십자 버튼(작게) + 피하기 버튼(크게)
+const MOVE = [
+  { a: 'fwd', ic: '▲', t: '앞', small: true, pos: 'u' },
+  { a: 'circleL', ic: '◀', t: '왼', small: true, pos: 'l' },
+  { a: 'back', ic: '▼', t: '뒤', small: true, pos: 'd' },
+  { a: 'circleR', ic: '▶', t: '오른', small: true, pos: 'r' },
+];
 const LEFT = [
-  { a: 'circleL', ic: '⟲', t: '돌기', small: true },
-  { a: 'back', ic: '⇩', t: '물러나기', small: true },
-  { a: 'circleR', ic: '⟳', t: '돌기', small: true },
-  { a: 'dodgeL', ic: '◀', t: '왼쪽' },
-  { a: 'duck', ic: '▼', t: '숙이기' },
-  { a: 'dodgeR', ic: '▶', t: '오른쪽' },
+  { a: 'dodgeL', ic: '⤺', t: '왼피하기' },
+  { a: 'duck', ic: '⤓', t: '숙이기' },
+  { a: 'dodgeR', ic: '⤻', t: '오른피하기' },
 ];
 const RIGHT = [
   { a: 'special', ic: '★', t: '필살', cls: 'special' },
@@ -37,7 +41,7 @@ export class TouchControls {
       pad.className = `pad ${side}`;
       for (const b of list) {
         const e = document.createElement('button');
-        e.className = 'tb' + (b.cls ? ' ' + b.cls : '') + (b.small ? ' small' : '');
+        e.className = 'tb' + (b.cls ? ' ' + b.cls : '') + (b.small ? ' small' : '') + (b.pos ? ' p-' + b.pos : '');
         e.innerHTML = `<span class="ic">${b.ic}</span><span>${b.t}</span>`;
         e.setAttribute('aria-label', b.t);
         const down = (ev) => {
@@ -62,6 +66,7 @@ export class TouchControls {
       }
       r.appendChild(pad);
     };
+    mk('move', MOVE);
     mk('left', LEFT);
     mk('right', RIGHT);
     this.tip = document.createElement('div');
