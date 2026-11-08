@@ -99,7 +99,7 @@ async function desktop(browser, logs) {
   await page.screenshot({ path: `${OUT}/09_fight.png` });
   await waitFor(page, () => { const o = window.__app.current.fight.opp; return o.state === 'tell' && o.t > o.dur * 0.6; });
   await page.screenshot({ path: `${OUT}/10_fight_tell.png` });
-  await waitFor(page, () => window.__app.current.fight.player.stars > 0, 120000);
+  await waitFor(page, () => window.__app.current.fight.player.stars > 0 || window.__app.screens.fight.ended, 120000);
   await page.screenshot({ path: `${OUT}/11_fight_star.png` });
   // 헤드리스 브라우저는 느리므로 나머지 경기는 배속으로 진행 (판정 로직은 같음)
   await page.evaluate(() => { window.__simSpeed = 6; });

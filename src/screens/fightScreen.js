@@ -48,6 +48,10 @@ export class FightScreen {
     if (params.forceTell) this.renderer.settings = { ...app.settings, tellHighlight: true };
     if (params.setup) params.setup(this.renderer);
     this.acc = 0;
+    // 이전 화면(튜토리얼·훈련 결과)의 확인 콜백이 남아 J·Enter로 경기를 빠져나가는 버그 방지
+    this.overlayConfirm = null;
+    this.betweenShown = false;
+    this.lastOverlay = undefined;
     this.paused = false;
     this.ended = false;
     this.app.actions.gameActive = true;
