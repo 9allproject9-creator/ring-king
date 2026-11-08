@@ -159,4 +159,12 @@ export class FightScreen {
     }
     showResult(this.root, f, { audio: this.app.audio, onRetry: () => this.restart(), onNext: () => this.restart() });
   }
+
+  // 결과 화면을 띄우고 Enter로 "다음"을 누를 수 있게 한다
+  showResultOverlay(opts) {
+    const s = showResult(this.root, this.fight, { audio: this.app.audio, ...opts });
+    let done = false;
+    this.overlayConfirm = () => { if (done) return; done = true; this.overlayConfirm = null; opts.onNext && opts.onNext(); };
+    return s;
+  }
 }
