@@ -18,7 +18,7 @@ const AUTOPLAY = `(() => {
   window.__auto = setInterval(() => {
     const s = window.__app && window.__app.current;
     const f = s && s.fight;
-    if (!f) return;
+    if (!f || window.__app.screens.fight.ended || window.__app.currentName !== 'fight') return;
     const p = f.player, o = f.opp, now = performance.now();
     if (f.phase === 'pdown' || p.state === 'clinched') { if (now - last > 90) { key('KeyJ', 20); last = now; } return; }
     if (f.phase !== 'fight') return;
@@ -41,9 +41,11 @@ const AUTOPLAY = `(() => {
 // 화면이 바뀌는 순간 값이 잠깐 없을 수 있으니 오류는 "아직 아님"으로 본다
 const waitFor = (page, fn, timeout = 60000) => page.waitForFunction(`(() => { try { return !!(${fn.toString()})(); } catch (e) { return false; } })()`, null, { timeout, polling: 100 });
 
+let lastPage = null;
 async function desktop(browser, logs) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const page = await ctx.newPage();
+  lastPage = page;
   hook(page, logs, 'PC');
   await page.goto(URL0);
   await page.evaluate(() => localStorage.clear());
@@ -163,6 +165,10 @@ try {
   console.log('모바일 세로 터치: 잽 버튼 →', b > 0 ? '펀치 나감' : '반응 없음');
 } catch (e) {
   console.error('실패:', e.message);
+  try {
+    console.error('상태:', JSON.stringify(await lastPage.evaluate(() => { const a = window.__app; const f = a.current && a.current.fight; return { screen: a.currentName, phase: f && f.phase, opp: f && f.opp.state, gap: f && f.gap, pstate: f && f.player.state, held: [...a.actions.held].filter(([k, v]) => v.size).map(([k]) => k), frame: f && f.frame, tut: a.screens.tutorial.st && a.screens.tutorial.st.step }; })));
+    await lastPage.screenshot({ path: `${OUT}/tmp/fail.png` });
+  } catch (e2) { /* 무시 */ }
   process.exitCode = 1;
 } finally {
   await browser.close();

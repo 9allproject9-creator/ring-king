@@ -249,6 +249,10 @@ label.chk input { width: 26px; height: 26px; accent-color: var(--gold); }
 .ach.got { opacity: 1; border-color: var(--gold); background: rgba(80,60,0,0.35); }
 .ach-ico { font-size: 34px; }
 
+.gym-punches { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); display: flex; gap: 10px; }
+.gym-punches .tb { pointer-events: auto; width: 74px; height: 74px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.85); background: rgba(20,20,34,0.55); color: #fff; font-family: var(--round); font-size: 18px; touch-action: none; }
+.gym-counter { position: absolute; top: 120px; right: 14px; background: rgba(0,0,0,0.6); color: #ffd23a; font-family: var(--round); font-size: 20px; padding: 6px 14px; border-radius: 999px; }
+
 /* 만들기 화면 */
 .swatch { min-width: 48px; min-height: 48px; border-radius: 12px; border: 3px solid rgba(255,255,255,0.3); background: #333; color: #fff; font-family: var(--round); font-size: 15px; padding: 4px 10px; cursor: pointer; }
 .swatch.on { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,210,58,0.4); }
