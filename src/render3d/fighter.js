@@ -47,6 +47,53 @@ export function ik3(s, t, a, b, pole, outE, outT, maxStretch = 1.7) {
   return k;
 }
 
+// 샌드백: Fighter3D와 같은 모양의 함수들을 가진 간단한 매달린 자루
+export class Bag3D {
+  constructor(look) {
+    this.look = look;
+    this.d = { hipY: 0.9, T: 0.5, HR: 0.2, neck: 0.05, S: 0.3 };
+    this.root = new THREE.Group();
+    this.pivot = new THREE.Group();
+    this.pivot.position.y = 2.6;
+    this.root.add(this.pivot);
+    const ol = (this.ol = outlineMat(0.014));
+    const bag = new THREE.Mesh(GEO.capsule, toonMat(look.trunks || '#8a3a2a'));
+    bag.scale.set(0.5, 1.0, 0.5);
+    bag.position.y = -1.25;
+    bag.add(new THREE.Mesh(GEO.capsule, ol));
+    this.pivot.add(bag);
+    const band = new THREE.Mesh(GEO.cyl, toonMat('#ffd23a'));
+    band.scale.set(0.255, 0.12, 0.255);
+    band.position.y = -1.0;
+    this.pivot.add(band);
+    const chain = new THREE.Mesh(GEO.cyl, toonMat('#888'));
+    chain.scale.set(0.02, 0.6, 0.02);
+    chain.position.y = -0.3;
+    this.pivot.add(chain);
+    this.head = new THREE.Object3D();
+    this.head.position.y = -1.0;
+    this.pivot.add(this.head);
+    this.swing = { x: 0, z: 0, vx: 0, vz: 0 };
+    this.time = 0;
+  }
+  hit(dir, power) {
+    this.swing.vz -= power * 0.004;
+    this.swing.vx += dir * power * 0.003;
+  }
+  update(dt) {
+    const s = this.swing;
+    const k = dt / 16;
+    s.vx += -s.x * 0.02 * k; s.vz += -s.z * 0.02 * k;
+    s.vx *= Math.pow(0.97, k); s.vz *= Math.pow(0.97, k);
+    s.x += s.vx * k; s.z += s.vz * k;
+    this.pivot.rotation.set(s.z, 0, s.x);
+  }
+  setColors() {}
+  setHighlight() {}
+  headWorld(out = V()) { return this.head.getWorldPosition(out); }
+  dispose() { disposeTree(this.root); }
+}
+
 export class Fighter3D {
   constructor(look, opts = {}) {
     this.look = look;

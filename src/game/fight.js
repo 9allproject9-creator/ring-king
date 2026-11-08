@@ -8,7 +8,9 @@ import { judgeDecision } from './scoring.js';
 import { MASH_MASK, PRESS_MASK, IN } from './inputBits.js';
 
 export class Fight {
-  constructor({ opponent, difficulty = 'normal', variant = 'normal', seed = 1, rounds, playerHp, startStars = 0, noTimer = false }) {
+  constructor({ opponent, difficulty = 'normal', variant = 'normal', seed = 1, rounds, playerHp, startStars = 0, noTimer = false, training = null, roundMs = null }) {
+    this.training = training; // 'sandbag' | 'mitts' | 'drill' | null
+    this.roundMsCfg = roundMs || CONFIG.fight.roundMs;
     this.seed = seed;
     this.rng = createRng(seed);
     this.difficulty = difficulty;
@@ -22,7 +24,7 @@ export class Fight {
     this.opp = new Opponent(opponent, { difficulty, variant, rng: this.rng });
     this.noTimer = noTimer;
     this.round = 1;
-    this.roundTime = CONFIG.fight.roundMs;
+    this.roundTime = this.roundMsCfg;
     this.phase = 'intro';
     this.phaseT = 0;
     this.clock = 0; // 경기 전체 프레임 시간(ms)
@@ -377,7 +379,7 @@ export class Fight {
     this.opp.roundReset(this);
     this.gap = 0;
     this.round++;
-    this.roundTime = CONFIG.fight.roundMs;
+    this.roundTime = this.roundMsCfg;
     this.phase = 'intro';
     this.phaseT = 0;
     this.newRoundStats();
@@ -390,7 +392,14 @@ export class Fight {
     return (p.maxHp - p.hp) * CONFIG.player.roundHealRatio;
   }
 
+  // 훈련 끝내기
+  endTraining() {
+    if (this.phase === 'over' || this.phase === 'ending') return;
+    this.finish('player', '훈련 끝');
+  }
+
   decide() {
+    if (this.training) { this.finish('player', '훈련 끝'); return; }
     const d = judgeDecision(this.rounds);
     this.decision = d;
     this.finish(d.winner, d.winner === 'draw' ? '무승부' : d.kind, d);

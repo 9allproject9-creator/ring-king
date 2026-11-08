@@ -93,6 +93,7 @@ function landHit(fight, punchId, dmg, kind, hitstop) {
   fight.lastPlayerHit = { punch: punchId, kind, clock: fight.clock };
   if (p.comboName) fight.stats.combos++;
   o.onHit(fight, dmg, DIR[punchId]);
+  if (fight.training) o.hp = o.maxHp; // 훈련 상대는 쓰러지지 않는다
   fight.setHitstop(hitstop);
   fight.emit({ type: 'hit', punch: punchId, dmg, kind, combo: p.comboName, stars: punchId === 'special' ? p.specialStars : 0, hpRatio: o.hp / o.maxHp });
   if (o.hp <= 0) fight.onOpponentDown(punchId, kind);
@@ -116,7 +117,7 @@ function block(fight, punchId, base, why) {
 export function resolveOpponentAttack(fight, o) {
   const p = fight.player;
   const atk = o.atk;
-  const dmg = atk.damage * fight.diff.dmgTaken;
+  const dmg = fight.training === 'drill' ? 0 : atk.damage * fight.diff.dmgTaken; // 피하기 훈련은 아프지 않다
 
   if (p.state === 'getup' || p.state === 'down') {
     o.onAttackDodged(fight);

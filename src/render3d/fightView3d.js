@@ -1,6 +1,6 @@
 // 3D 경기 화면: Fight 상태와 이벤트만 읽어 3D 장면(상대·1인칭 장갑·경기장)과 2D HUD를 그린다.
 import * as THREE from 'three';
-import { Fighter3D } from './fighter.js';
+import { Fighter3D, Bag3D } from './fighter.js';
 import { FirstPerson, EYE } from './firstPerson.js';
 import { OpponentAnimator } from '../render/opponentAnimator.js';
 import { Effects } from '../render/effects.js';
@@ -47,7 +47,7 @@ export class FightView3D {
       this.stage.scene.remove(this.fighter.root);
       this.fighter.dispose();
     }
-    this.fighter = new Fighter3D(fight.oppData.look);
+    this.fighter = fight.oppData.bag ? new Bag3D(fight.oppData.look) : new Fighter3D(fight.oppData.look);
     this.stage.scene.add(this.fighter.root);
     this.oppAnim = new OpponentAnimator(fight.oppData);
     this.effects.reset();
@@ -101,6 +101,7 @@ export class FightView3D {
           break;
         case 'hit': {
           this.lastActionAt = this.time;
+          if (this.fighter && this.fighter.hit) this.fighter.hit(e.punch === 'jab' ? 1 : e.punch === 'straight' ? -1 : 0, e.dmg * 3);
           const big = e.kind === 'counter' || e.kind === 'interrupt' || e.kind === 'special';
           const mag = Math.min(1.6, e.dmg / 8);
           const ix = hp.x + (e.punch === 'jab' ? -30 : e.punch === 'straight' ? 30 : 0);
@@ -347,6 +348,7 @@ export class FightView3D {
     }
     const frozen = f.hitstop > 0 ? 0 : alphaMs;
     const pose = this.oppAnim.update(dt, o, frozen);
+    if (this.poseOverride) this.poseOverride(pose, f);
     const tellReal = o.state === 'tell' && !o.fake;
     this.fighter.setHighlight(tellReal && this.settings.tellHighlight ? (this.fight.oppData.look.tellColor || '#ff5a3a') : null);
     let fall = 0;

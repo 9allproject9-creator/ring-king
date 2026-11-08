@@ -15,6 +15,10 @@ import { IntroScreen } from './screens/intro.js';
 import { CutsceneScreen } from './screens/cutscene.js';
 import { EndingScreen } from './screens/ending.js';
 import { GymScreen } from './screens/gym.js';
+import { ShopScreen } from './screens/shop.js';
+import { AchievementsScreen, RecordsScreen } from './screens/records.js';
+import { TrainingScreen, JumpRopeScreen } from './screens/training.js';
+import { checkAchievements } from './data/achievements.js';
 import { getOpponent, leagueOf } from './data/opponents/index.js';
 import { getItem } from './data/shop.js';
 import { applyResult, storyBefore, storyAfter, markStory, triesOf } from './game/career.js';
@@ -47,6 +51,11 @@ class App {
       cutscene: new CutsceneScreen(this),
       ending: new EndingScreen(this),
       gym: new GymScreen(this),
+      shop: new ShopScreen(this),
+      achievements: new AchievementsScreen(this),
+      records: new RecordsScreen(this),
+      training: new TrainingScreen(this),
+      rope: new JumpRopeScreen(this),
     };
     this.current = null;
     this.actions.onUi((code, e) => this.current && this.current.onUi && this.current.onUi(code, e));
@@ -128,7 +137,7 @@ class App {
     const d = this.save.data;
     const out = applyResult(d, fight, ctx);
     if (out.summary.win && (out.summary.method === 'KO' || out.summary.method === 'TKO')) d.lastReplay = replay;
-    this.afterFight && this.afterFight(fight, out, ctx);
+    this.award({ type: 'fight', fight, out, ctx });
     this.save.save();
     const fs = this.screens.fight;
     const extra = [];
@@ -157,6 +166,17 @@ class App {
       loseAdvice: loseAdvice(getOpponent(ctx.oppId), Math.max(1, triesOf(d, ctx.oppId))),
       extra: extra.length ? extra.map((t) => { const e = document.createElement('div'); e.className = 'bubble'; e.style.fontSize = '17px'; e.textContent = t; return e; }) : null,
     });
+  }
+
+  // 도전 과제 확인 → 알림
+  award(ev) {
+    const got = checkAchievements(this.save.data, ev);
+    got.forEach((a, i) => setTimeout(() => {
+      toast(`🏅 도전 과제 달성: ${a.name} (+🪙${a.reward})`);
+      this.audio.sfx('achieve');
+    }, 400 + i * 900));
+    if (got.length) this.save.save();
+    return got;
   }
 
   loop(now) {

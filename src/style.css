@@ -221,6 +221,17 @@ label.chk input { width: 26px; height: 26px; accent-color: var(--gold); }
 .gym-stick { position: absolute; left: max(24px, env(safe-area-inset-left)); bottom: max(24px, env(safe-area-inset-bottom)); width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.5); touch-action: none; }
 .gym-stick .knob { position: absolute; left: 35px; top: 35px; width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.7); }
 
+/* 상점 */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.shop-item { background: var(--panel2); border: 3px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.shop-item.eq { border-color: var(--green); }
+.shop-swatch { width: 84px; height: 84px; border-radius: 50%; border: 4px solid #1a1410; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #fff; text-shadow: 0 2px 0 #000; background: #444; }
+/* 도전 과제 */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.ach { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 14px; background: rgba(0,0,0,0.35); border: 2px solid var(--line); opacity: 0.65; }
+.ach.got { opacity: 1; border-color: var(--gold); background: rgba(80,60,0,0.35); }
+.ach-ico { font-size: 34px; }
+
 /* 만들기 화면 */
 .swatch { min-width: 48px; min-height: 48px; border-radius: 12px; border: 3px solid rgba(255,255,255,0.3); background: #333; color: #fff; font-family: var(--round); font-size: 15px; padding: 4px 10px; cursor: pointer; }
 .swatch.on { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,210,58,0.4); }

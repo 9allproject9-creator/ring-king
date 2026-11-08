@@ -21,6 +21,9 @@ export class FightScreen {
       variant: params.variant || 'normal',
       seed,
       rounds: params.rounds,
+      training: params.training || null,
+      noTimer: !!params.noTimer,
+      roundMs: params.roundMs || null,
     });
     this.inputs = [];
     this.marks = [];
@@ -34,6 +37,8 @@ export class FightScreen {
       audio: app.audio,
       floorPattern: params.floorPattern,
     });
+    if (params.forceTell) this.renderer.settings = { ...app.settings, tellHighlight: true };
+    if (params.setup) params.setup(this.renderer);
     this.acc = 0;
     this.paused = false;
     this.ended = false;
@@ -110,6 +115,7 @@ export class FightScreen {
       this.inputs.push(input);
       f.step(input);
       r.onEvents(f.events);
+      if (this.params.onStep) this.params.onStep(f, r, f.events);
       this.acc -= DT;
       steps++;
     }
@@ -118,6 +124,7 @@ export class FightScreen {
 
   draw(ctx, view) {
     this.renderer.draw(ctx, view);
+    if (this.params.drawExtra) this.params.drawExtra(ctx, this.renderer.layout, this.renderer, this.fight);
   }
 
   onBetween() {
