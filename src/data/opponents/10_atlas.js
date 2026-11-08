@@ -30,7 +30,8 @@ export default {
     idleExpr: 'smug',
   },
   stats: {
-    maxHp: 200,
+    tellScale: 0.9,
+    maxHp: 175,
     idleBlock: 0.75,
     guardGauge: 120,
     rest: [800, 1200],
@@ -38,7 +39,7 @@ export default {
     hurtMs: 300,
     maxHitsInRow: 4,
     blockCounter: { after: 4, attack: 'champJab' },
-    getUp: { chance: [1, 1, 0.6, 0.3], countAt: [5, 8], heal: [0.38, 0.3, 0.22, 0.15] },
+    getUp: { chance: [1, 0.9, 0.5, 0.25], countAt: [5, 8], heal: [0.35, 0.28, 0.2, 0.15] },
     roundHeal: 0.18,
     phaseChangeMs: 2200,
   },
@@ -110,7 +111,7 @@ export default {
     },
     {
       hpBelow: 0.33,
-      tellScale: 0.78,
+      tellScale: 0.86,
       damageMul: 1.1,
       line: '좋아, 좋아! 오랜만에 피가 끓는다! 전력으로 간다!!',
       idleBlock: 0.6,

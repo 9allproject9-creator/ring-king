@@ -30,8 +30,9 @@ export default {
     exprMap: { normal: 'calm', smug: 'calm' },
   },
   stats: {
+    tellScale: 0.83,
     maxHp: 118,
-    idleBlock: 0.6,
+    idleBlock: 0.75,
     rest: [800, 1200],
     restAfterHurt: [450, 650],
     hurtMs: 300,

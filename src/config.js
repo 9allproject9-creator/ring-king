@@ -55,13 +55,15 @@ export const CONFIG = {
   },
   opponentDefaults: {
     maxHp: 100,
+    hpScale: 3.2, // 균형 조정: 상대 데이터의 체력에 곱함 (BALANCE.md 참고)
+    tellScale: 1, // 상대별 텔 배율(난이도 곡선용)
     guardGauge: 60,
     guardRegenPerSec: 8,
     idleBlock: 0.4,
     guardReroll: [500, 900],
     hurtMs: 320,
-    maxHitsInRow: 4,
-    blockStanceMs: 900,
+    maxHitsInRow: 3,
+    blockStanceMs: 700,
     rest: [900, 1500],
     restAfterHurt: [350, 650],
     chainGap: [140, 240],
@@ -71,7 +73,7 @@ export const CONFIG = {
     roundHeal: 0.25,
     taunt: null,
     step: null,
-    blockCounter: null,
+    blockCounter: { after: 3, attack: null }, // 가드 위를 3번 치면 받아친다 (attack 없으면 punish 공격)
     feintPunish: null,
     phaseChangeMs: 1700,
     damageMul: 1,

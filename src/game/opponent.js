@@ -26,7 +26,7 @@ export class Opponent {
     this.phases = buildPhases(data, variant);
     this.phaseIndex = 0;
     this.ph = this.phases[0];
-    this.maxHp = Math.round(this.p.maxHp * this.varCfg.hpMul);
+    this.maxHp = Math.round(this.p.maxHp * (this.p.hpScale ?? 1) * this.varCfg.hpMul);
     this.hp = this.maxHp;
     this.maxGuardGauge = this.p.guardGauge;
     this.guardGauge = this.p.guardGauge;
@@ -77,7 +77,7 @@ export class Opponent {
   }
 
   tellScale(fight) {
-    let s = (this.ph.tellScale || 1) * this.diff.tellScale * this.varCfg.tellScale;
+    let s = (this.ph.tellScale || 1) * (this.p.tellScale ?? 1) * this.diff.tellScale * this.varCfg.tellScale;
     const slow = this.p.slowdown;
     if (slow) {
       const round = fight ? fight.round : 1;
@@ -375,9 +375,11 @@ export class Opponent {
       return;
     }
     const bc = this.p.blockCounter;
-    if (bc && this.blocks >= bc.after && (this.state === 'idle' || this.state === 'blockStance')) {
+    const atk = bc && (bc.attack || this.data.punish);
+    if (atk && this.blocks >= bc.after && (this.state === 'idle' || this.state === 'blockStance')) {
       this.blocks = 0;
-      this.startSentence(fight, { seq: [bc.attack] }, true);
+      this.startSentence(fight, { seq: [atk] }, true);
+      fight.emit({ type: 'oppCounter' });
     }
   }
 

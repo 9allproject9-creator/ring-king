@@ -30,7 +30,7 @@ export default {
   },
   stats: {
     maxHp: 80,
-    idleBlock: 0.45,
+    idleBlock: 0.55,
     rest: [800, 1300],
     restAfterHurt: [450, 700],
     hurtMs: 300,

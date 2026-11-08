@@ -5,7 +5,7 @@ import { IN } from '../src/game/inputBits.js';
 export const TEST_OPP = {
   id: 'test', order: 0, name: '테스트', nick: '허수아비',
   look: { build: { w: 1, h: 1 }, skin: '#e0b090', hair: { style: 'buzz', color: '#222' }, trunks: '#333', gloves: '#c33' },
-  stats: { maxHp: 100, idleBlock: 0, rest: [99999, 99999], restAfterHurt: [99999, 99999], maxHitsInRow: 99, getUp: { chance: [1, 1, 1], countAt: [3, 3], heal: [0.5, 0.5, 0.5] } },
+  stats: { maxHp: 100, hpScale: 1, blockCounter: null, idleBlock: 0, rest: [99999, 99999], restAfterHurt: [99999, 99999], maxHitsInRow: 99, getUp: { chance: [1, 1, 1], countAt: [3, 3], heal: [0.5, 0.5, 0.5] } },
   attacks: {
     hookL: { name: '훅', anim: 'hookL', tell: 800, active: 100, recovery: 400, damage: 10, avoid: ['L'], whiffMs: 700, counter: { punch: 'jab' } },
     body: { name: '몸통', anim: 'bodyL', tell: 800, active: 100, recovery: 400, damage: 8, avoid: [], whiffMs: 700 },

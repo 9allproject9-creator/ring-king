@@ -31,8 +31,9 @@ export default {
     idleClip: 'bounce',
   },
   stats: {
+    tellScale: 0.94,
     maxHp: 135,
-    idleBlock: 0.6,
+    idleBlock: 0.75,
     rest: [700, 1100],
     restAfterHurt: [400, 600],
     hurtMs: 290,

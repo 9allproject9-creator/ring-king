@@ -31,8 +31,9 @@ export default {
     idleExpr: 'smug',
   },
   stats: {
+    tellScale: 0.88,
     maxHp: 104,
-    idleBlock: 0.55,
+    idleBlock: 0.7,
     rest: [800, 1300],
     restAfterHurt: [450, 700],
     hurtMs: 300,

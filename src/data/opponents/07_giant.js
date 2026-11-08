@@ -29,8 +29,9 @@ export default {
     idleExpr: 'grin',
   },
   stats: {
+    tellScale: 0.95,
     maxHp: 150,
-    idleBlock: 0.5,
+    idleBlock: 0.7,
     rest: [1200, 1800],
     restAfterHurt: [600, 900],
     hurtMs: 340,
