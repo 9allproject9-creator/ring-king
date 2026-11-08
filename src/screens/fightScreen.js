@@ -6,6 +6,7 @@ import { FightView3D } from '../render3d/fightView3d.js';
 import { el, clear } from './dom.js';
 import { showBetween, showResult } from './fightOverlays.js';
 import { keyName } from '../input/keyboard.js';
+import { packReplay } from '../game/replay.js';
 
 export class FightScreen {
   constructor(app) {
@@ -24,6 +25,7 @@ export class FightScreen {
       rounds: params.rounds,
       training: params.training || null,
       noTimer: !!params.noTimer,
+      playerHp: params.playerHp,
       roundMs: params.roundMs || null,
     });
     this.inputs = [];
@@ -193,7 +195,7 @@ export class FightScreen {
   onEnd() {
     this.ended = true;
     const f = this.fight;
-    const replay = { seed: f.seed, opponentId: f.oppData.id, difficulty: f.difficulty, variant: f.variant, rounds: f.maxRounds, inputs: this.inputs, marks: this.marks };
+    const replay = packReplay(f, this.inputs, this.marks, { playerHp: this.params.playerHp });
     if (this.params.onEnd) {
       this.params.onEnd(f, replay);
       return;

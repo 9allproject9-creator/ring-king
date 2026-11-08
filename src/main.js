@@ -24,6 +24,8 @@ import { TrainingScreen, JumpRopeScreen } from './screens/training.js';
 import { checkAchievements } from './data/achievements.js';
 import { TutorialScreen } from './screens/tutorial.js';
 import { SettingsScreen } from './screens/settings.js';
+import { ModesScreen, ReplayScreen } from './screens/modes.js';
+import { OPPONENTS } from './data/opponents/index.js';
 import { getOpponent, leagueOf } from './data/opponents/index.js';
 import { getItem } from './data/shop.js';
 import { applyResult, storyBefore, storyAfter, markStory, triesOf } from './game/career.js';
@@ -72,6 +74,8 @@ class App {
       rope: new JumpRopeScreen(this),
       tutorial: new TutorialScreen(this),
       settings: new SettingsScreen(this),
+      modes: new ModesScreen(this),
+      replay: new ReplayScreen(this),
     };
     this.applySettings();
     this.current = null;
@@ -97,7 +101,7 @@ class App {
     if (this.current && this.current.exit) this.current.exit();
     this.actions.clear();
     // 배경용 3D 상대는 배경을 쓰지 않는 화면(경기·체육관)에서는 치운다
-    if (name === 'fight' || name === 'gym' || name === 'lineup') this.backdrop.clearFighter();
+    if (name === 'fight' || name === 'gym' || name === 'lineup' || name === 'replay') this.backdrop.clearFighter();
     this.current = next;
     this.currentName = name;
     this.current.enter(params);
@@ -140,6 +144,29 @@ class App {
     } else this.go('intro', { oppId, mode });
   }
 
+  toastMsg(m) {
+    toast(m);
+  }
+
+  watchReplay(replay) {
+    const back = this.currentName === 'records' ? 'records' : this.currentName === 'modes' ? 'modes' : 'gym';
+    this.go('replay', { replay, back });
+  }
+
+  startBossRush() {
+    this.rush = { i: 0, hp: 100, start: Date.now() };
+    this.nextRush();
+  }
+
+  nextRush() {
+    const r = this.rush;
+    this.startFight({ oppId: OPPONENTS[r.i].id, mode: 'rush', extra: { rounds: 2, playerHp: r.hp } });
+  }
+
+  backTo(mode) {
+    return mode === 'career' ? ['map', { mode }] : mode === 'defense' ? ['map', { mode }] : mode === 'free' ? ['gym', {}] : ['modes', {}];
+  }
+
   startFight({ oppId, mode = 'career', variant = 'normal', extra = {} }) {
     const opp = getOpponent(oppId);
     const lg = leagueOf(oppId);
@@ -150,7 +177,7 @@ class App {
       difficulty: this.settings.difficulty,
       floorPattern: this.floorPattern(),
       ...extra,
-      onQuit: () => this.go('map', { mode }),
+      onQuit: () => { const [s, p] = this.backTo(mode); this.go(s, p); },
       onEnd: (fight, replay) => this.finishFight(fight, replay, { oppId, mode, variant }),
     });
   }
@@ -165,7 +192,30 @@ class App {
     const extra = [];
     if (out.unlocked) extra.push(`🔓 새 상대: ${getOpponent(out.unlocked).nick} ${getOpponent(out.unlocked).name}`);
     if (out.newRecord) extra.push('⏱ 최단 KO 기록!');
+    // 보스 러시: 이기면 체력을 조금만 회복하고 다음 상대
+    let rushLine = null;
+    if (ctx.mode === 'rush') {
+      const r = this.rush;
+      if (out.summary.win) {
+        r.i++;
+        r.hp = Math.min(100, Math.max(1, fight.player.hp + (100 - fight.player.hp) * 0.4));
+      }
+      const best = d.records.bossRush || { reached: 0, cleared: false };
+      best.reached = Math.max(best.reached, r.i);
+      if (r.i >= OPPONENTS.length) best.cleared = true;
+      d.records.bossRush = best;
+      this.award({ type: 'rush' });
+      this.save.save();
+      rushLine = out.summary.win ? (r.i >= OPPONENTS.length ? '🔥 보스 러시 완주! 진짜 챔피언!' : `🔥 ${r.i}/10 돌파! 다음 체력 ${Math.round(r.hp)}`) : `🔥 보스 러시 ${r.i}명에서 끝`;
+    }
+    if (rushLine) extra.unshift(rushLine);
     const next = () => {
+      if (ctx.mode === 'rush') {
+        if (out.summary.win && this.rush.i < OPPONENTS.length) this.nextRush();
+        else this.go('modes');
+        return;
+      }
+      if (ctx.mode === 'timeattack' || ctx.mode === 'free') { const [s, p] = this.backTo(ctx.mode); this.go(s, p); return; }
       const sid = out.summary.win && ctx.mode === 'career' ? storyAfter(d, ctx.oppId) : null;
       if (sid) {
         this.go('cutscene', {
@@ -181,10 +231,10 @@ class App {
     };
     fs.showResultOverlay({
       summary: out.summary,
-      onRetry: () => this.startFight(ctx),
+      onRetry: () => (ctx.mode === 'rush' ? this.startBossRush() : this.startFight(ctx)),
       onNext: next,
       onReplay: d.lastReplay && replay === d.lastReplay ? () => this.watchReplay && this.watchReplay(replay) : null,
-      nextLabel: out.summary.win ? '다음으로 ▶' : '지도로',
+      nextLabel: ctx.mode === 'rush' && out.summary.win && this.rush.i < OPPONENTS.length ? '다음 상대 ▶' : out.summary.win ? '다음으로 ▶' : '돌아가기',
       loseAdvice: loseAdvice(getOpponent(ctx.oppId), Math.max(1, triesOf(d, ctx.oppId))),
       extra: extra.length ? extra.map((t) => { const e = document.createElement('div'); e.className = 'bubble'; e.style.fontSize = '17px'; e.textContent = t; return e; }) : null,
     });
