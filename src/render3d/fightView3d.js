@@ -13,6 +13,13 @@ import { EASE } from '../render/rig.js';
 const HIT_WORDS = { jab: '퍽!', straight: '팍!', upper: '쾅!', special: '필살!!' };
 export const DEFAULT_PLAYER_LOOK = { skin: '#f0c8a0', gloves: '#2f7de1', glovePattern: null };
 
+const REF_LOOK = {
+  build: { w: 0.95, h: 1.0, belly: 0.2, neck: 1, arm: 0.95, head: 1, glove: 0.45 },
+  skin: '#e8c09a', shirt: '#f4f4f4', pants: '#222228', trunks: '#222228', trim: '#222228', gloves: '#e8c09a',
+  hair: { style: 'slick', color: '#8a8a8a' }, brow: 'normal', eyes: 'small', nose: 'big', extras: ['bowtie', 'mustache'],
+  exprMap: { normal: 'calm' },
+};
+
 export function hudLayout(view) {
   const { w, h, portrait } = view;
   return { w, h, portrait, gaugeY: portrait ? Math.round(h * 0.55) : h - 50, stageBottom: portrait ? Math.round(h * 0.55) + 60 : h };
@@ -60,6 +67,15 @@ export class FightView3D {
     }
     this.fighter = fight.oppData.bag ? new Bag3D(fight.oppData.look) : new Fighter3D(fight.oppData.look);
     this.stage.scene.add(this.fighter.root);
+    // 심판 (훈련엔 없음)
+    if (this.ref) { this.stage.scene.remove(this.ref.root); this.ref.dispose(); this.ref = null; }
+    if (!fight.training) {
+      this.ref = new Fighter3D(REF_LOOK);
+      this.ref.root.position.set(1.9, 0, -0.9);
+      this.refAnim = new OpponentAnimator({ id: 'ref', look: REF_LOOK });
+      this.refState = { state: 'idle', t: 0, dur: 1e9, guardUp: false, pos: 0, fromPos: 0, hp: 1, maxHp: 1, atk: null, lastHitDir: 0 };
+      this.stage.arena.group.add(this.ref.root);
+    }
     this.oppAnim = new OpponentAnimator(fight.oppData);
     // HUD 얼굴 아이콘
     const face = (look, expr) => {
@@ -85,6 +101,7 @@ export class FightView3D {
     }
     if (this.fp) this.stage.camera.remove(this.fp.rig);
     for (const fl of this.flashes || []) { this.stage.scene.remove(fl.s); fl.s.material.dispose(); }
+    if (this.ref) { this.stage.arena.group.remove(this.ref.root); this.ref.dispose(); this.ref = null; }
     this.stage.arena.group.rotation.y = 0;
   }
 
@@ -460,6 +477,25 @@ export class FightView3D {
       fl.s.visible = true;
       fl.s.material.opacity = k;
       fl.s.scale.setScalar(fl.size * (1.4 - k * 0.6));
+    }
+    // 심판: 평소엔 링 구석, 다운되면 다가와 팔을 휘두르며 카운트
+    if (this.ref) {
+      this.refState.t += dt;
+      const rp = this.refAnim.update(dt, this.refState, 0);
+      const d0 = f.down;
+      const target = d0 ? new THREE.Vector3(0.9, 0, -0.35) : new THREE.Vector3(1.9, 0, -0.9);
+      this.ref.root.position.lerp(target, Math.min(1, dt / 300));
+      this.ref.root.rotation.y = Math.atan2(-this.ref.root.position.x, -this.ref.root.position.z + 0.5) * 0.6;
+      rp.glx = 0.9; rp.gly = -0.3; rp.grx = -0.9; rp.gry = -0.3; rp.glz = 1; rp.grz = 1;
+      if (d0 && d0.count > 0) {
+        const ph = ((d0.t - 900) % 1000) / 1000;
+        const k = ph < 0.3 ? EASE.out(ph / 0.3) : 1 - EASE.inOut((ph - 0.3) / 0.7);
+        rp.grx = -0.6; rp.gry = -2.0 + k * 1.5; rp.grz = 1.3;
+        rp.expr = 'shout';
+      } else if (f.phase === 'ending' && f.result && f.result.winner === 'player') {
+        rp.grx = -0.5; rp.gry = -2.1; rp.expr = 'happy';
+      }
+      this.ref.update(dt, rp, {});
     }
     // 승리 꽃가루
     if (this.confettiT > 0 && this.layout) {

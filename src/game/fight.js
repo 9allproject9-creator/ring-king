@@ -83,6 +83,8 @@ export class Fight {
     }
 
     this.phaseT += DT;
+    // 다운·라운드 종료·경기 종료 중에도 상대 동작 시계는 흐른다(쓰러짐·KO·승리 동작용, 판정과 무관)
+    if (this.phase !== 'fight' && this.phase !== 'intro') o.t += DT;
     switch (this.phase) {
       case 'intro':
         p.guardHeld = !!(input & IN.GUARD);

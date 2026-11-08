@@ -142,10 +142,11 @@ export class Fighter3D {
 
     this.body.position.y = d.hipY;
     // 다리 (IK로 매 프레임 배치)
+    const pants = L.pants ? toonMat(L.pants) : null;
     this.legs = [-1, 1].map((sg) => ({
       sg,
-      thigh: add(this.root, GEO.capsule, M.skin),
-      shin: add(this.root, GEO.capsule, M.skinDark),
+      thigh: add(this.root, GEO.capsule, pants || M.skin),
+      shin: add(this.root, GEO.capsule, pants || M.skinDark),
       shoe: add(this.root, GEO.sphere, M.shoe),
       sock: add(this.root, GEO.cyl, M.sock, false),
     }));
@@ -164,16 +165,27 @@ export class Fighter3D {
       plate.scale.set(0.12, 0.09, 0.03);
       plate.position.set(0, 0.06, d.S * 0.7 * (1 + d.belly * 0.4));
     }
+    // 셔츠를 입은 사람(심판·코치)
+    const shirt = L.shirt ? toonMat(L.shirt) : null;
+    if (shirt) M.shirt = shirt;
     // 몸통: 배(아래) + 가슴(위)
-    const belly = add(this.chest, GEO.sphere, M.skin);
+    const belly = add(this.chest, GEO.sphere, shirt || M.skin);
     belly.scale.set(d.S * 0.82 * (1 + d.belly * 0.45), d.T * 0.42, d.S * 0.6 * (1 + d.belly * 0.9));
     belly.position.set(0, d.T * 0.32, d.belly * 0.04);
-    const chestM = add(this.chest, GEO.sphere, M.skin);
+    const chestM = add(this.chest, GEO.sphere, shirt || M.skin);
+    if ((L.extras || []).includes('bowtie')) {
+      for (const sg of [-1, 1]) {
+        const b = add(this.chest, GEO.cone, toonMat('#1a1a1a'));
+        b.scale.set(0.04, 0.07, 0.03);
+        b.rotation.z = sg * Math.PI / 2;
+        b.position.set(sg * 0.035, d.T * 0.98, d.S * 0.55);
+      }
+    }
     chestM.scale.set(d.S * 1.02, d.T * 0.42, d.S * 0.62);
     chestM.position.set(0, d.T * 0.72, 0);
     // 어깨
     this.shoulders = [-1, 1].map((sg) => {
-      const sh = add(this.chest, GEO.sphere, M.skin);
+      const sh = add(this.chest, GEO.sphere, shirt || M.skin);
       sh.scale.setScalar(d.limb * 0.78);
       sh.position.set(sg * d.S, d.T * 0.92, 0);
       return sh;
@@ -226,7 +238,7 @@ export class Fighter3D {
   makeArm(sg) {
     const M = this.mats;
     const d = this.d;
-    const upper = this.add(this.upper, GEO.capsule, M.skin);
+    const upper = this.add(this.upper, GEO.capsule, M.shirt || M.skin);
     const fore = this.add(this.upper, GEO.capsule, M.skin);
     const glove = new THREE.Group();
     this.upper.add(glove);
@@ -456,8 +468,10 @@ export class Fighter3D {
     // 넘어짐: 앞쪽 발끝을 축으로 뒤로
     const fall = o.fall || 0;
     const kb = o.koBlend; // 쓰러진 자세(0) → 완전히 누움(1)
-    const angle = kb !== null && kb !== undefined ? 0.55 + (1.45 - 0.55) * kb : (o.ko ? 1.45 : 0.55);
-    const sink = kb !== null && kb !== undefined ? 0.4 + (0.1 - 0.4) * kb : (o.ko ? 0.1 : 0.4);
+    // 다운 = 엉덩방아(살짝 뒤로 기울며 주저앉음), KO = 뒤로 완전히 누움
+    const sitSink = d.hipY - 0.36;
+    const angle = kb !== null && kb !== undefined ? 0.3 + (1.45 - 0.3) * kb : (o.ko ? 1.45 : 0.3);
+    const sink = kb !== null && kb !== undefined ? sitSink + (0.1 - sitSink) * kb : (o.ko ? 0.1 : sitSink);
     this.fallPivot.rotation.x = -fall * angle;
     this.fallPivot.position.z = -fall * 0.15;
     const dropPx = kb !== null && kb !== undefined ? 0 : Math.min(70, Math.max(-40, pose.y));
