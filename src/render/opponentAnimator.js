@@ -62,9 +62,11 @@ export class OpponentAnimator {
         break;
       case 'idle':
       case 'chain':
-        name = this.blockFlash > 0 ? 'block' : (o.guardUp || o.state === 'chain' ? 'idle' : 'idleOpen');
+        name = this.blockFlash > 0 ? 'block' : (o.guardUp || o.state === 'chain' ? (this.data.look.idleClip || 'idle') : 'idleOpen');
         key = name;
-        if (name === 'block') p = 1 - this.blockFlash / 260;
+        if (this.blockFlash > 0) p = 1 - this.blockFlash / 260;
+        else if (name === 'block') p = 1;
+        else if (name === 'bounce') p = (this.time / 700) % 1;
         break;
       case 'tell':
         name = `${anim}_tell`;

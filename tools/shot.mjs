@@ -30,8 +30,14 @@ export async function runScenario(sc) {
   });
   const page = await ctx.newPage();
   const logs = [];
-  page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`); });
-  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+  page.on('console', (m) => {
+    if (m.type() === 'error' || m.type() === 'warning') {
+      logs.push(`[${m.type()}] ${m.text()}`);
+      console.log(`[${m.type()}] ${m.text()}`);
+    }
+  });
+  page.on('pageerror', (e) => { logs.push(`[pageerror] ${e.message}`); console.log(`[pageerror] ${e.message}\n${e.stack || ''}`); });
+  page.setDefaultTimeout(15000);
   await page.goto(sc.url || 'http://localhost:5173', { waitUntil: 'load' });
   for (const s of sc.steps || []) {
     if (s.wait) await page.waitForTimeout(s.wait);

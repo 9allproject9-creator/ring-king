@@ -223,6 +223,56 @@ export class Hud {
   }
 }
 
+// 텔 강조: 피하는 방향 아이콘(모양+화살표, 색만으로 구분하지 않음)
+export function drawAvoidIcon(ctx, x, y, avoid, color) {
+  const n = avoid.length || 1;
+  const gap = 64;
+  ctx.save();
+  for (let i = 0; i < n; i++) {
+    const kind = avoid.length ? avoid[i] : 'guard';
+    const cx = x + (i - (n - 1) / 2) * gap;
+    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+    ctx.beginPath();
+    ctx.arc(cx, y, 27, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    if (kind === 'L' || kind === 'R') {
+      const s = kind === 'L' ? -1 : 1;
+      ctx.moveTo(cx + s * 16, y);
+      ctx.lineTo(cx - s * 2, y - 15);
+      ctx.lineTo(cx - s * 2, y - 6);
+      ctx.lineTo(cx - s * 16, y - 6);
+      ctx.lineTo(cx - s * 16, y + 6);
+      ctx.lineTo(cx - s * 2, y + 6);
+      ctx.lineTo(cx - s * 2, y + 15);
+      ctx.closePath();
+    } else if (kind === 'duck') {
+      ctx.moveTo(cx, y + 16);
+      ctx.lineTo(cx - 15, y + 2);
+      ctx.lineTo(cx - 6, y + 2);
+      ctx.lineTo(cx - 6, y - 16);
+      ctx.lineTo(cx + 6, y - 16);
+      ctx.lineTo(cx + 6, y + 2);
+      ctx.lineTo(cx + 15, y + 2);
+      ctx.closePath();
+    } else {
+      ctx.moveTo(cx, y - 16);
+      ctx.lineTo(cx + 14, y - 10);
+      ctx.lineTo(cx + 12, y + 6);
+      ctx.lineTo(cx, y + 17);
+      ctx.lineTo(cx - 12, y + 6);
+      ctx.lineTo(cx - 14, y - 10);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function shadeSimple(hex) {
   const n = parseInt(hex.slice(1), 16);
   const r = ((n >> 16) & 255) * 0.65;

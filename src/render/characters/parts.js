@@ -813,6 +813,12 @@ function drawHairFront(ctx, hair, R) {
   }
 }
 
+// 얼굴 위에 그리는 장식만(3D 얼굴 텍스처용)
+const FACE_EXTRAS = new Set(['blush', 'freckles', 'stubble', 'mustache', 'scarH']);
+export function drawFaceMarks(ctx, look, R, opt = {}) {
+  drawExtras(ctx, { ...look, extras: (look.extras || []).filter((e) => FACE_EXTRAS.has(e)) }, R, opt);
+}
+
 function drawExtras(ctx, look, R, opt) {
   const ex = look.extras || [];
   if (ex.includes('blush')) {

@@ -21,6 +21,16 @@ export const BASE_CLIPS = {
       { t: 1, y: 0, sy: 1, gly: -0.55, gry: -0.55, hy: 0 },
     ],
   },
+  bounce: { // 통통 튀는 스텝 대기(리코·카이)
+    loop: true,
+    keys: [
+      { t: 0, ...GUARD, y: 0, sy: 1, expr: 'normal' },
+      { t: 0.25, y: -14, sy: 1.03, gly: -1.16, gry: -1.1, ease: 'out' },
+      { t: 0.5, y: 4, sy: 0.97, gly: -1.1, gry: -1.14, ease: 'in' },
+      { t: 0.75, y: -14, sy: 1.03, gly: -1.14, gry: -1.16, ease: 'out' },
+      { t: 1, y: 0, sy: 1, gly: -1.12, gry: -1.12, ease: 'in' },
+    ],
+  },
   block: {
     keys: [
       { t: 0, glx: 0.2, gly: -1.28, glz: 1.18, grx: -0.2, gry: -1.28, grz: 1.18, hy: 8, y: 4, expr: 'block' },

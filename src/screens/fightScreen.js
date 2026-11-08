@@ -2,7 +2,7 @@
 import { DT } from '../config.js';
 import { Fight } from '../game/fight.js';
 import { randomSeed } from '../game/rng.js';
-import { FightRenderer } from '../render/fightRenderer.js';
+import { FightView3D } from '../render3d/fightView3d.js';
 import { el, clear } from './dom.js';
 import { showBetween, showResult } from './fightOverlays.js';
 
@@ -24,13 +24,15 @@ export class FightScreen {
     });
     this.inputs = [];
     this.marks = [];
-    this.renderer = new FightRenderer({
+    this.renderer = new FightView3D({
+      stage: app.stage,
       fight: this.fight,
       venue: params.venue || 'gym',
       settings: app.settings,
       playerLook: app.playerLook ? app.playerLook() : undefined,
       playerName: app.playerName ? app.playerName() : '나',
       audio: app.audio,
+      floorPattern: params.floorPattern,
     });
     this.acc = 0;
     this.paused = false;
@@ -46,6 +48,8 @@ export class FightScreen {
     this.app.actions.gameActive = false;
     this.app.audio.setCrowd(false);
     this.root && this.root.remove();
+    if (this.renderer) this.renderer.dispose();
+    this.renderer = null;
   }
 
   onUi(code) {

@@ -29,7 +29,8 @@ html, body {
   -webkit-user-select: none;
 }
 
-#game { position: absolute; display: block; }
+#gl { position: absolute; display: block; z-index: 0; }
+#game { position: absolute; display: block; z-index: 1; pointer-events: none; }
 
 #ui {
   position: absolute;

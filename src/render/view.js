@@ -6,7 +6,7 @@ export const BASE_H = 720;
 export class View {
   constructor(canvas) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext('2d', { alpha: false });
+    this.ctx = canvas.getContext('2d', { alpha: true }); // 3D 화면 위에 겹치는 HUD
     this.w = BASE_W; // 논리 폭
     this.h = BASE_H; // 논리 높이
     this.scale = 1;
