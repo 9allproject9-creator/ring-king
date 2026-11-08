@@ -115,9 +115,11 @@ export class FightScreen {
     if (this.paused) return;
     const f = this.fight;
     const r = this.renderer;
-    this.acc += Math.min(100, dt) * r.timeScale();
+    // window.__simSpeed: 자동 화면 검사(느린 헤드리스 브라우저)용 배속. 평소엔 1.
+    const speed = (typeof window !== 'undefined' && window.__simSpeed) || 1;
+    this.acc += Math.min(100, dt) * r.timeScale() * speed;
     let steps = 0;
-    while (this.acc >= DT && steps < 6) {
+    while (this.acc >= DT && steps < 6 * speed) {
       if (f.phase === 'between') {
         this.acc = 0;
         this.onBetween();
