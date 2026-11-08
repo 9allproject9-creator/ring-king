@@ -113,7 +113,7 @@ export class Opponent {
     m[type] += 1;
   }
 
-  resolveToken(tok) {
+  resolveToken(tok, fight) {
     const v = this.data.variants && this.data.variants[tok];
     if (!v) return tok;
     if (v.byPos) return v.byPos[String(this.pos)];
@@ -123,7 +123,10 @@ export class Opponent {
       if (h && h.share > 0.4 && this.rng() < learn) {
         // 습관적으로 피하는 방향으로는 피할 수 없는 공격을 고른다
         const opts = v.adaptive.filter((id) => !(this.data.attacks[id].avoid || ATTACK_DEFAULTS.avoid).includes(h.type));
-        if (opts.length) return this.rng.pick(opts);
+        if (opts.length) {
+          fight && fight.emit({ type: 'oppLearn', habit: h.type });
+          return this.rng.pick(opts);
+        }
       }
       return this.rng.pick(v.adaptive);
     }
@@ -265,7 +268,7 @@ export class Opponent {
     }
     let fake = false;
     if (tok[0] === '~') { fake = true; tok = tok.slice(1); }
-    const id = this.resolveToken(tok);
+    const id = this.resolveToken(tok, fight);
     this.atk = this.makeAttack(id, fight, s.fast && s.idx === 0);
     this.fake = fake;
     this.hitsInRow = 0;

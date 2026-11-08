@@ -61,6 +61,15 @@ export function resolvePlayerStrike(fight, punchId) {
 
   if (isSpecial) return landHit(fight, punchId, base, 'special', pc.hitstop);
 
+  // 스텝으로 펀치를 피하는 상대 (대기 중에만)
+  if (cls === 'idle' && o.p.evadeChance && fight.rng() < o.p.evadeChance) {
+    o.doStep(fight);
+    p.spendStamina(pc.stamina * (CONFIG.player.stamina.whiffMul - 1));
+    fight.stats.whiffs++;
+    fight.emit({ type: 'whiff', punch: punchId, evaded: true });
+    return 'whiff';
+  }
+
   if (cls === 'guarded' || (cls === 'idle' && o.guardUp)) return block(fight, punchId, base, 'guard');
 
   let blockChance = p.monotony || 0;
