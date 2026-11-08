@@ -13,7 +13,7 @@ export const DEFAULT_PLAYER_LOOK = { skin: '#f0c8a0', gloves: '#2f7de1', glovePa
 
 export function hudLayout(view) {
   const { w, h, portrait } = view;
-  return { w, h, portrait, gaugeY: portrait ? Math.round(h * 0.6) : h - 50, stageBottom: portrait ? Math.round(h * 0.6) + 60 : h };
+  return { w, h, portrait, gaugeY: portrait ? Math.round(h * 0.55) : h - 50, stageBottom: portrait ? Math.round(h * 0.55) + 60 : h };
 }
 
 export class FightView3D {
@@ -373,7 +373,7 @@ export class FightView3D {
     this.gapS = (this.gapS || 0) + (f.gap - (this.gapS || 0)) * Math.min(1, dt / 60);
     this.orbitS = (this.orbitS || 0) + (f.orbit - (this.orbitS || 0)) * Math.min(1, dt / 60);
     st.arena.group.rotation.y = this.orbitS;
-    cam.position.z += this.gapS;
+    cam.position.z += this.gapS + (st.view && st.view.portrait ? 0.75 : 0);
     const moving = Math.abs(f.orbit - this.orbitS) > 0.002 || Math.abs(f.gap - this.gapS) > 0.002;
     if (moving && !this.settings.reduceMotion) cam.position.y += Math.abs(Math.sin(this.time / 110)) * 0.025;
     // 상대가 쓰러지면 내려다본다

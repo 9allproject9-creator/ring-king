@@ -5,6 +5,8 @@ import { AudioEngine } from './audio/sfx.js';
 import { Music } from './audio/music.js';
 import { Actions } from './input/actions.js';
 import { Keyboard } from './input/keyboard.js';
+import { TouchControls } from './input/touch.js';
+import { Gamepads } from './input/gamepad.js';
 import { SaveStore } from './save.js';
 import { FightScreen } from './screens/fightScreen.js';
 import { Backdrop } from './screens/backdrop.js';
@@ -50,6 +52,9 @@ class App {
     this.keyboard = new Keyboard(this.actions);
     this.keyboard.setKeys(this.settings.keys);
     this.backdrop = new Backdrop(this);
+    this.touch = new TouchControls(this);
+    this.gamepads = new Gamepads(this);
+    window.addEventListener('resize', () => this.touch.refresh());
     this.screens = {
       fight: new FightScreen(this),
       title: new TitleScreen(this),
@@ -185,6 +190,23 @@ class App {
     });
   }
 
+  // 자동 화질: 3초 평균이 45fps보다 느리면 해상도를 낮추고, 그래도 느리면 관중을 줄인다
+  autoQuality(dt) {
+    if (this.settings.quality !== 'auto' || document.hidden) return;
+    const q = (this.q = this.q || { sum: 0, n: 0, level: 0 });
+    q.sum += dt;
+    q.n++;
+    if (q.sum < 3000) return;
+    const avg = q.sum / q.n;
+    q.sum = 0;
+    q.n = 0;
+    if (avg > 22 && q.level < 2) {
+      q.level++;
+      if (q.level === 1) this.stage.setQuality(1);
+      if (q.level === 2) this.stage.arena.lowDetail = true;
+    }
+  }
+
   applySettings() {
     const s = this.settings;
     this.audio.setVolumes(s.sfx, s.music);
@@ -210,6 +232,8 @@ class App {
   loop(now) {
     const dt = Math.min(100, now - this.last);
     this.last = now;
+    this.gamepads.poll();
+    this.autoQuality(dt);
     if (this.current) {
       this.current.update(dt);
       const ctx = this.view.ctx;

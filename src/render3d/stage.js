@@ -43,9 +43,9 @@ export class Stage3D {
     const cam = this.camera;
     cam.aspect = view.w / view.h;
     // 세로 화면: 시야를 넓히고 그림을 위로 올려 아래쪽을 조작 버튼 자리로 비운다
-    this.baseFov = view.portrait ? 74 : 52;
+    this.baseFov = view.portrait ? 70 : 52;
     cam.fov = this.baseFov;
-    if (view.portrait) cam.setViewOffset(view.w, view.h, 0, view.h * 0.16, view.w, view.h);
+    if (view.portrait) cam.setViewOffset(view.w, view.h, 0, view.h * 0.2, view.w, view.h);
     else cam.clearViewOffset();
     cam.updateProjectionMatrix();
   }

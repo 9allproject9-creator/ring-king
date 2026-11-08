@@ -5,6 +5,7 @@ import { randomSeed } from '../game/rng.js';
 import { FightView3D } from '../render3d/fightView3d.js';
 import { el, clear } from './dom.js';
 import { showBetween, showResult } from './fightOverlays.js';
+import { keyName } from '../input/keyboard.js';
 
 export class FightScreen {
   constructor(app) {
@@ -47,6 +48,13 @@ export class FightScreen {
     this.ended = false;
     this.app.actions.gameActive = true;
     this.app.actions.clear();
+    app.touch.show(true);
+    if (document.body.classList.contains('touch-on')) {
+      this.renderer.labels = { special: '★ 버튼', mash: '펀치 버튼을 마구 눌러 일어나!' };
+    } else {
+      const k = app.keyboard.keys;
+      this.renderer.labels = { special: keyName(k.special[0]), mash: `공격 키(${keyName(k.jab[0])}·${keyName(k.straight[0])}·${keyName(k.upper[0])}) 연타로 일어나!` };
+    }
     app.audio.setCrowd(true);
     this.root = el('div', { class: 'screen', style: 'pointer-events:none' });
     app.ui.appendChild(this.root);
@@ -54,6 +62,7 @@ export class FightScreen {
 
   exit() {
     this.app.actions.gameActive = false;
+    this.app.touch.show(false);
     this.app.audio.setCrowd(false);
     this.root && this.root.remove();
     this.app.music && this.app.music.setIntensity(0);
@@ -125,6 +134,10 @@ export class FightScreen {
     }
     r.update(dt, Math.min(DT, this.acc) * (f.hitstop > 0 ? 0 : 1));
     this.updateMusic();
+    this.app.touch.update(f);
+    // 오버레이가 떠 있을 땐 터치 버튼을 숨긴다
+    const overlay = this.paused || this.betweenShown || this.ended;
+    if (overlay !== this.lastOverlay) { this.lastOverlay = overlay; this.app.touch.show(!overlay); }
   }
 
   // 음악: 대회 단계별 곡, 보스 페이즈 곡, 체력이 낮으면 긴박하게, 끝나면 승리/패배

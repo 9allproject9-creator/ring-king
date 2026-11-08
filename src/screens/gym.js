@@ -331,6 +331,14 @@ export class GymScreen extends Screen {
     if (k.has('KeyA')) side -= 1;
     if (k.has('KeyD')) side += 1;
     if (this.stickVec) { fwd -= this.stickVec.y; side += this.stickVec.x; }
+    // 게임패드: 왼쪽 스틱 걷기, 오른쪽 스틱 돌기
+    const gp = navigator.getGamepads ? [...navigator.getGamepads()].find((p) => p && p.connected) : null;
+    if (gp) {
+      const dz = (v) => (Math.abs(v) > 0.2 ? v : 0);
+      fwd -= dz(gp.axes[1] || 0);
+      side += dz(gp.axes[0] || 0);
+      this.yaw -= dz(gp.axes[2] || 0) * 2.2 * s;
+    }
     const len = Math.hypot(fwd, side);
     if (len > 0.05) {
       const sp = 3.0 * s * Math.min(1, len) / Math.max(1, len);

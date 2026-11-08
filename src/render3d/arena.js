@@ -290,6 +290,11 @@ export class Arena {
   updateCrowd(dt, force = false) {
     const c = this.crowd;
     if (!c) return;
+    if (this.lowDetail) {
+      // 느린 기기: 관중 절반만 그리고 움직임은 멈춘다
+      c.bodies.count = c.heads.count = Math.floor(c.spots.length / 2);
+      if (!force) return;
+    }
     this.crowdFrame = (this.crowdFrame || 0) + 1;
     if (!force && this.crowdFrame % 2) return;
     const t = this.time / 1000;

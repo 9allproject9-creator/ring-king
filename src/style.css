@@ -155,6 +155,17 @@ p { line-height: 1.55; margin: 6px 0; }
 #touch .tb.special { background: rgba(80, 60, 0, 0.5); border-color: rgba(255,210,58,0.4); color: rgba(255,255,255,0.4); }
 #touch .tb.special.ready { background: rgba(255, 190, 30, 0.85); border-color: #fff; color: #1a1410; animation: pulse 0.8s infinite alternate; }
 #touch .tb.guard { border-radius: 20px; }
+#touch .tb.small { width: calc(var(--tb, 76px) * 0.72); height: calc(var(--tb, 76px) * 0.72); font-size: 12px; justify-self: center; opacity: 0.85; }
+#touch .tb.small .ic { font-size: 20px; }
+#touch .tb.pausekey { width: calc(var(--tb, 76px) * 0.72); height: calc(var(--tb, 76px) * 0.72); justify-self: center; align-self: center; font-size: 12px; }
+#touch .pad.right { grid-template-columns: repeat(3, auto); }
+#touch.portrait { --tb: min(var(--tbp, 66px), 18vw) !important; }
+#touch.portrait .pad { bottom: max(14px, env(safe-area-inset-bottom)); gap: 8px; }
+#touch.portrait .pad.left { left: 50%; transform: translateX(-50%); }
+#touch.portrait .pad.right { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(max(14px, env(safe-area-inset-bottom)) + var(--tb) * 1.72 + 22px); }
+#touch.portrait .rotate-tip { top: 96px; }
+#touch .tb { min-width: 64px; min-height: 64px; }
+#touch .tb.small, #touch .tb.pausekey { min-width: 52px; min-height: 52px; }
 #touch .pausebtn { position: absolute; top: max(86px, env(safe-area-inset-top)); right: 12px; pointer-events: auto; width: 52px; height: 52px; border-radius: 14px; font-size: 22px; }
 @keyframes pulse { from { box-shadow: 0 0 0 0 rgba(255,210,58,0.6); } to { box-shadow: 0 0 0 14px rgba(255,210,58,0); } }
 
@@ -243,7 +254,9 @@ label.chk input { flex: none; }
 .map { width: 100%; max-width: 1200px; margin-top: 70px; display: flex; flex-direction: column; gap: 18px; padding-bottom: 30px; }
 .league { background: rgba(10,10,20,0.72); border: 2px solid var(--line); border-radius: 18px; padding: 12px 14px; }
 .league h3 { color: var(--gold); margin-bottom: 8px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 200px)); gap: clamp(6px, 2vw, 12px); }
+.cards .card { padding: clamp(6px, 1.6vw, 12px); }
+@media (max-width: 520px) { .cards .card div { font-size: 13px !important; } .cards .stars { font-size: 13px; } }
 .card.next { border-color: #ff6a3a; animation: glowCard 1.2s infinite alternate; }
 @keyframes glowCard { from { box-shadow: 0 0 0 0 rgba(255,106,58,0.6); } to { box-shadow: 0 0 18px 4px rgba(255,106,58,0.6); } }
 
