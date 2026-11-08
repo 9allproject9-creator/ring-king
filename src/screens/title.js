@@ -33,7 +33,7 @@ export class TitleScreen extends Screen {
     setTimeout(() => {
       this.started = false;
       if (!d.profile.created) this.app.go('create');
-      else this.app.go('menu');
+      else this.app.go('gym');
     }, 120);
   }
 }

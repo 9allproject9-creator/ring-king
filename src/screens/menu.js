@@ -15,6 +15,7 @@ export class MenuScreen extends Screen {
       el('span', { class: 'ico' }, ico), label, sub ? el('span', { class: 'sub' }, sub) : null,
     ]);
     const list = [
+      item('🚶', '체육관 걸어 다니기', 'WASD로 돌아다녀요', () => app.go('gym'), 'blue'),
       item('🥊', '커리어', d.career.cleared ? '클리어! ★' + totalStars(d) : `★ ${totalStars(d)} / 30`, () => app.go('map'), 'big'),
       item('💪', '훈련 캠프', '샌드백 · 미트 · 피하기 · 줄넘기', () => app.go('training'), 'blue'),
       item('🛍️', '상점', '꾸미기', () => app.go('shop'), 'green'),

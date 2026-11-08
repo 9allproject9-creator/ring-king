@@ -55,8 +55,8 @@ export class CreateScreen extends Screen {
       app.save.save();
       app.audio.sfx('select');
       if (this.edit) app.go('menu');
-      else if (!d.tutorialDone) app.go('tutorial', { first: true });
-      else app.go('menu');
+      else if (!d.tutorialDone && app.screens.tutorial) app.go('tutorial', { first: true });
+      else app.go('gym');
     };
     const node = el('div', { class: 'screen dim' }, el('div', { class: 'panel col fade-in scroll', style: 'width:min(760px,96vw);max-height:96vh' }, [
       el('h2', {}, this.edit ? '내 복서 바꾸기' : '나만의 복서 만들기'),

@@ -9,7 +9,14 @@ export const IN = {
   DUCK: 32,
   GUARD: 64, // 누르고 있는 상태
   SPECIAL: 128,
+  // 링 안에서 움직이기 (누르고 있는 상태)
+  MOVE_BACK: 256,
+  MOVE_FWD: 512,
+  CIRCLE_L: 1024,
+  CIRCLE_R: 2048,
 };
+
+export const HOLD_ACTIONS = { guard: IN.GUARD, back: IN.MOVE_BACK, fwd: IN.MOVE_FWD, circleL: IN.CIRCLE_L, circleR: IN.CIRCLE_R };
 
 export const PRESS_MASK = IN.JAB | IN.STRAIGHT | IN.UPPER | IN.DODGE_L | IN.DODGE_R | IN.DUCK | IN.SPECIAL;
 export const MASH_MASK = IN.JAB | IN.STRAIGHT | IN.UPPER | IN.SPECIAL;

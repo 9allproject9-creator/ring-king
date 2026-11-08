@@ -50,14 +50,14 @@ export class MapScreen extends Screen {
       })),
     ]));
     this.mount(el('div', { class: 'screen top' }, [
-      topBar(app, isDef ? '챔피언 방어전' : `커리어  ★${totalStars(d)}/30`, () => app.go(isDef ? 'modes' : 'menu')),
+      topBar(app, isDef ? '챔피언 방어전' : `커리어  ★${totalStars(d)}/30`, () => app.go(isDef ? 'modes' : 'gym')),
       el('div', { class: 'map scroll fade-in' }, sections),
     ]));
     setTimeout(() => { const b = this.root && (this.root.querySelector('.card.next') || this.root.querySelector('.card:not(.locked)')); b && b.focus(); }, 60);
   }
 
   onUi(code) {
-    if (code === 'Escape') this.app.go(this.mode === 'defense' ? 'modes' : 'menu');
+    if (code === 'Escape') this.app.go(this.mode === 'defense' ? 'modes' : 'gym');
     if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowDown') moveFocus(this.root, 1);
     if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowUp') moveFocus(this.root, -1);
   }

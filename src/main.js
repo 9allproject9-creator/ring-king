@@ -14,6 +14,7 @@ import { MapScreen } from './screens/map.js';
 import { IntroScreen } from './screens/intro.js';
 import { CutsceneScreen } from './screens/cutscene.js';
 import { EndingScreen } from './screens/ending.js';
+import { GymScreen } from './screens/gym.js';
 import { getOpponent, leagueOf } from './data/opponents/index.js';
 import { getItem } from './data/shop.js';
 import { applyResult, storyBefore, storyAfter, markStory, triesOf } from './game/career.js';
@@ -45,6 +46,7 @@ class App {
       intro: new IntroScreen(this),
       cutscene: new CutsceneScreen(this),
       ending: new EndingScreen(this),
+      gym: new GymScreen(this),
     };
     this.current = null;
     this.actions.onUi((code, e) => this.current && this.current.onUi && this.current.onUi(code, e));
@@ -68,6 +70,8 @@ class App {
     }
     if (this.current && this.current.exit) this.current.exit();
     this.actions.clear();
+    // 배경용 3D 상대는 배경을 쓰지 않는 화면(경기·체육관)에서는 치운다
+    if (name === 'fight' || name === 'gym' || name === 'lineup') this.backdrop.clearFighter();
     this.current = next;
     this.currentName = name;
     this.current.enter(params);

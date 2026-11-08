@@ -144,7 +144,8 @@ export class Opponent {
         this.fatigue = Math.max(0, this.fatigue - this.p.fatigue.recoverPerSec * sec);
         this.guardTimer -= dt;
         if (this.guardTimer <= 0) this.rerollGuard();
-        if (this.t >= this.dur) this.decide(fight);
+        // 멀리 떨어져 있으면 다가올 때까지 공격을 시작하지 않는다
+        if (this.t >= this.dur && !(fight.gap > 0.3)) this.decide(fight);
         break;
       case 'tell':
         if (this.t >= this.dur) this.tellEnd(fight);

@@ -1,13 +1,17 @@
 // 키보드 → 행동. 키 바꾸기는 settings.keys(행동 → 코드 배열)로.
 export const DEFAULT_KEYS = {
-  dodgeL: ['KeyA', 'ArrowLeft'],
-  dodgeR: ['KeyD', 'ArrowRight'],
-  duck: ['KeyS', 'ArrowDown'],
-  guard: ['KeyW', 'ArrowUp'],
+  dodgeL: ['KeyA'],
+  dodgeR: ['KeyD'],
+  duck: ['KeyS'],
+  guard: ['KeyW'],
   jab: ['KeyJ', 'KeyZ'],
   straight: ['KeyK', 'KeyX'],
   upper: ['KeyL', 'KeyC'],
   special: ['Space'],
+  circleL: ['KeyQ', 'ArrowLeft'],
+  circleR: ['KeyE', 'ArrowRight'],
+  fwd: ['ArrowUp'],
+  back: ['ArrowDown'],
   pause: ['Escape', 'KeyP'],
 };
 
@@ -20,6 +24,10 @@ export const ACTION_LABELS = {
   straight: '스트레이트(오른손)',
   upper: '어퍼컷',
   special: '필살 펀치',
+  circleL: '왼쪽으로 돌기',
+  circleR: '오른쪽으로 돌기',
+  fwd: '앞으로 다가가기',
+  back: '뒤로 물러나기',
   pause: '일시정지',
 };
 

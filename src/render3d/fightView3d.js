@@ -64,6 +64,7 @@ export class FightView3D {
       this.fighter = null;
     }
     if (this.fp) this.stage.camera.remove(this.fp.rig);
+    this.stage.arena.group.rotation.y = 0;
   }
 
   timeScale() {
@@ -129,8 +130,14 @@ export class FightView3D {
           this.camShake(2);
           a && a.sfx('block');
           break;
+        case 'outOfRange': {
+          const L = this.layout || { w: 1280, h: 720 };
+          fx.text('멀어서 안 닿았다!', L.w / 2, L.h * 0.5, { size: 36, color: '#dddddd', life: 600 });
+          a && a.sfx('miss');
+          break;
+        }
         case 'whiff':
-          fx.text(e.evaded ? '스텝으로 피했다!' : '헛손질', hp.x, hp.y - 60, { size: 32, color: '#dddddd', life: 500 });
+          fx.text(e.far ? '너무 멀어!' : e.evaded ? '스텝으로 피했다!' : '헛손질', hp.x, hp.y - 60, { size: 32, color: '#dddddd', life: 500 });
           a && a.sfx('miss');
           break;
         case 'playerHit': {
@@ -360,6 +367,13 @@ export class FightView3D {
     const targetCam = st.toCamera(this.headWorld);
     this.fp.update(dt, f.player, targetCam, frozen, f.phase, this.settings);
     const cam = st.camera;
+    // 링 안 이동: 거리만큼 뒤로, 돈 만큼 경기장이 반대로 돈다(= 내가 상대 주위를 돎)
+    this.gapS = (this.gapS || 0) + (f.gap - (this.gapS || 0)) * Math.min(1, dt / 60);
+    this.orbitS = (this.orbitS || 0) + (f.orbit - (this.orbitS || 0)) * Math.min(1, dt / 60);
+    st.arena.group.rotation.y = this.orbitS;
+    cam.position.z += this.gapS;
+    const moving = Math.abs(f.orbit - this.orbitS) > 0.002 || Math.abs(f.gap - this.gapS) > 0.002;
+    if (moving && !this.settings.reduceMotion) cam.position.y += Math.abs(Math.sin(this.time / 110)) * 0.025;
     // 상대가 쓰러지면 내려다본다
     const wantDown = (o.state === 'down' || o.state === 'ko') ? 0.32 : 0;
     this.lookDown += (wantDown - this.lookDown) * Math.min(1, dt / 300);

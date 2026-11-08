@@ -32,6 +32,17 @@ export const CONFIG = {
     roundHealRatio: 0.3,
     getup: { baseRequired: 14, perDown: 7, decayPerSec: 3, healByDown: [45, 35, 25, 20], mashValue: 1 },
     clinch: { mashRequired: 10, timeMs: 2600 },
+    // 링 안에서 움직이기
+    move: {
+      backSpeed: 1.1, // m/s 물러나기
+      fwdSpeed: 1.6, // m/s 다가가기
+      circleSpeed: 0.9, // rad/s 상대 주위 돌기
+      maxGap: 1.2, // 이만큼 물러나면 로프
+      punchRange: 0.35, // 이보다 멀면 내 펀치가 안 닿음
+      attackRange: 0.45, // 이보다 멀면 상대 공격이 안 닿음(헛방 보상은 없음)
+      oppCloseSpeed: 0.9, // 상대가 다가오는 속도
+      staminaPerSec: 6, // 물러날 때 스태미나
+    },
   },
   combat: {
     staggerMul: 1.5,

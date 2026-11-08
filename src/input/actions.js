@@ -1,6 +1,6 @@
 // 키보드·패드·터치를 하나의 "행동 입력"으로 모으는 층.
 // 게임 로직은 프레임마다 비트마스크 하나(inputBits.js)만 받는다.
-import { ACTION_BIT, IN } from '../game/inputBits.js';
+import { ACTION_BIT, HOLD_ACTIONS } from '../game/inputBits.js';
 
 export class Actions {
   constructor() {
@@ -34,7 +34,7 @@ export class Actions {
   consume() {
     let bits = this.pressedQueue;
     this.pressedQueue = 0;
-    if (this.isHeld('guard')) bits |= IN.GUARD;
+    for (const [a, bit] of Object.entries(HOLD_ACTIONS)) if (this.isHeld(a)) bits |= bit;
     return bits;
   }
 

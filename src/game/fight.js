@@ -33,6 +33,8 @@ export class Fight {
     this.down = null;
     this.clinch = null;
     this.result = null;
+    this.gap = 0; // 기본 거리보다 더 떨어진 정도(m)
+    this.orbit = 0; // 상대 주위를 돈 각도(rad)
     this.lastPlayerHit = null;
     this.stats = {
       thrown: 0, landed: 0, blocked: 0, whiffs: 0, counters: 0, interrupts: 0, dodges: 0,
@@ -93,7 +95,10 @@ export class Fight {
         this.fightTime += DT;
         if (!this.noTimer) this.roundTime -= DT;
         if (p.state === 'clinched') this.updateClinch(input);
-        else p.update(DT, input, this);
+        else {
+          this.updateMove(input);
+          p.update(DT, input, this);
+        }
         if (this.phase === 'fight') o.update(DT, this);
         if (p.hp < this.stats.minHp) this.stats.minHp = p.hp;
         if (this.phase === 'fight' && this.roundTime <= 0) this.endRound();
@@ -127,7 +132,40 @@ export class Fight {
     }
   }
 
+  // 링 안 이동: 물러나기·다가가기·돌기. 상대는 걸어서 다시 붙는다.
+  updateMove(input) {
+    const p = this.player;
+    const o = this.opp;
+    const M = CONFIG.player.move;
+    const s = DT / 1000;
+    const free = p.state === 'idle' || p.state === 'guard' || p.state === 'guardRelease';
+    if (free) {
+      if (input & IN.MOVE_BACK && p.stamina > 1) {
+        this.gap = Math.min(M.maxGap, this.gap + M.backSpeed * s);
+        p.stamina = Math.max(0, p.stamina - M.staminaPerSec * s);
+      }
+      if (input & IN.MOVE_FWD) this.gap = Math.max(0, this.gap - M.fwdSpeed * s);
+      if (input & IN.CIRCLE_L) this.orbit += M.circleSpeed * s;
+      if (input & IN.CIRCLE_R) this.orbit -= M.circleSpeed * s;
+    }
+    // 상대는 공격 중이 아닐 때 걸어서 다가온다
+    if (this.gap > 0 && !(input & IN.MOVE_BACK) && o.state !== 'tell' && o.state !== 'active') {
+      this.gap = Math.max(0, this.gap - M.oppCloseSpeed * s);
+    }
+  }
+
+  get outOfReach() {
+    return this.gap > CONFIG.player.move.punchRange;
+  }
+
   onPlayerPunchActive(punchId) {
+    if (this.gap > CONFIG.player.move.punchRange) {
+      this.stats.thrown++;
+      this.stats.whiffs++;
+      this.player.spendStamina(CONFIG.player.punches[punchId].stamina * 0.5);
+      this.emit({ type: 'whiff', punch: punchId, far: true });
+      return;
+    }
     resolvePlayerStrike(this, punchId);
   }
 
@@ -138,6 +176,12 @@ export class Fight {
 
   onOpponentAttackActive(o) {
     this.emit({ type: 'oppAttack', attack: o.atk.id });
+    if (this.gap > CONFIG.player.move.attackRange) {
+      // 너무 멀어서 안 닿음: 헛방 보상(비틀거림·별)은 없다
+      o.onAttackConnected();
+      this.emit({ type: 'outOfRange', attack: o.atk.id });
+      return;
+    }
     resolveOpponentAttack(this, o);
   }
 
@@ -331,6 +375,7 @@ export class Fight {
     p.action = null;
     p.buffer = null;
     this.opp.roundReset(this);
+    this.gap = 0;
     this.round++;
     this.roundTime = CONFIG.fight.roundMs;
     this.phase = 'intro';

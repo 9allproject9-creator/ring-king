@@ -160,6 +160,31 @@ test('가만히 있으면 스태미나가 빠르게 회복', () => {
   assert.ok(f.player.stamina > 35);
 });
 
+test('링 안 이동: 물러나면 펀치가 안 닿고, 상대 공격도 안 닿지만 헛방 보상은 없다', () => {
+  const f = toFight(makeFight());
+  for (let i = 0; i < 40; i++) f.step(IN.MOVE_BACK);
+  assert.ok(f.gap > 0.5);
+  const ev = collect(f, 12, (f, i) => (i === 0 ? IN.JAB | IN.MOVE_BACK : IN.MOVE_BACK));
+  assert.ok(ev.some((e) => e.type === 'whiff' && e.far));
+  forceAttack(f, 'hookL');
+  const ev2 = collect(f, 80, () => IN.MOVE_BACK);
+  assert.ok(ev2.some((e) => e.type === 'outOfRange'));
+  assert.equal(f.player.hp, 100);
+  assert.notEqual(f.opp.state, 'whiff');
+  assert.equal(f.player.stars, 0);
+});
+
+test('물러나기를 멈추면 상대가 다가와 다시 붙는다, 돌기는 각도만 바뀐다', () => {
+  const f = toFight(makeFight());
+  for (let i = 0; i < 40; i++) f.step(IN.MOVE_BACK);
+  const g = f.gap;
+  for (let i = 0; i < 120; i++) f.step(0);
+  assert.ok(f.gap < g && f.gap === 0);
+  for (let i = 0; i < 60; i++) f.step(IN.CIRCLE_L);
+  assert.ok(f.orbit > 0.8);
+  assert.equal(f.gap, 0);
+});
+
 test('같은 펀치 3번 연속이면 막힐 확률이 오른다', () => {
   const f = toFight(makeFight());
   for (let k = 0; k < 3; k++) {
