@@ -16,10 +16,11 @@ export function judgeDecision(rounds) {
       const so = r.o.hits * j.w.hits + (r.o.counters || 0) * j.w.counters;
       let rp = 10;
       let ro = 10;
-      if (sp > so + 0.5) ro = 9;
+      const dd = r.p.downs - r.o.downs; // 다운을 더 많이 뺏은 쪽이 라운드를 가져간다 (10-8, 다운 1번마다 1점 더)
+      if (dd > 0) ro = 9 - dd * j.w.downs;
+      else if (dd < 0) rp = 9 + dd * j.w.downs;
+      else if (sp > so + 0.5) ro = 9;
       else if (so > sp + 0.5) rp = 9;
-      rp -= r.o.downs * j.w.downs; // 내가 다운당한 횟수만큼 감점
-      ro -= r.p.downs * j.w.downs;
       rp = Math.max(6, rp);
       ro = Math.max(6, ro);
       perRound.push([rp, ro]);
@@ -48,6 +49,41 @@ export function starRating({ win, hpRatio, downsTaken, counters }) {
   if (hpRatio >= 0.5) s++;
   if (downsTaken === 0 && counters >= 5) s++;
   return s;
+}
+
+// 결과 화면용 요약 (로직만으로 계산)
+export function summarizeFight(fight, { order = 1, variant = 'normal', mode = 'career' } = {}) {
+  const r = fight.result || { winner: 'opponent', method: '-', hpRatio: 0 };
+  const s = fight.stats;
+  const win = r.winner === 'player';
+  const counters = s.counters;
+  const stars = starRating({ win, hpRatio: r.hpRatio, downsTaken: s.downsTaken, counters });
+  const accuracy = s.thrown ? s.landed / s.thrown : 0;
+  return {
+    win,
+    draw: r.winner === 'draw',
+    method: r.method,
+    round: r.round,
+    stars,
+    timeMs: fight.fightTime,
+    accuracy,
+    counters,
+    damageTaken: Math.round(s.damageTaken),
+    damageDealt: Math.round(s.damageDealt),
+    downsTaken: s.downsTaken,
+    downsDealt: s.downsDealt,
+    hpRatio: r.hpRatio,
+    coins: coinReward({ win, stars, order, variant, mode }),
+    decision: r.decision,
+    lastPunch: r.lastPunch,
+    lastKind: r.lastKind,
+    difficulty: fight.difficulty,
+  };
+}
+
+export function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}분 ${String(s % 60).padStart(2, '0')}초`;
 }
 
 export function coinReward({ win, stars, order, variant, mode }) {

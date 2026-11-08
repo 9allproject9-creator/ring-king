@@ -4,6 +4,7 @@ import { Fight } from '../game/fight.js';
 import { randomSeed } from '../game/rng.js';
 import { FightRenderer } from '../render/fightRenderer.js';
 import { el, clear } from './dom.js';
+import { showBetween, showResult } from './fightOverlays.js';
 
 export class FightScreen {
   constructor(app) {
@@ -48,7 +49,11 @@ export class FightScreen {
   }
 
   onUi(code) {
-    if ((code === 'Escape' || code === 'KeyP') && !this.ended) this.togglePause();
+    if (this.overlayConfirm && (code === 'Enter' || code === 'Space' || code === 'KeyJ' || code === 'NumpadEnter')) {
+      this.overlayConfirm();
+      return;
+    }
+    if ((code === 'Escape' || code === 'KeyP') && !this.ended && !this.betweenShown) this.togglePause();
   }
 
   togglePause() {
@@ -125,18 +130,19 @@ export class FightScreen {
       this.root.style.pointerEvents = 'none';
       this.root.classList.remove('dim');
       f.startNextRound();
+      this.app.actions.clear();
       this.marks.push({ frame: this.inputs.length, type: 'nextRound' });
       this.renderer.onEvents(f.events);
     };
+    this.app.audio.sfx('crowd', { cheer: 0.4 });
+    let done = false;
+    const once = () => { if (done) return; done = true; this.overlayConfirm = null; go(); };
+    this.overlayConfirm = once;
     if (this.params.onBetween) {
-      this.params.onBetween(this.root, f, heal, go);
+      this.params.onBetween(this.root, f, heal, once);
       return;
     }
-    this.root.appendChild(el('div', { class: 'panel col fade-in', style: 'text-align:center;min-width:280px' }, [
-      el('h2', {}, `${f.round}라운드 끝!`),
-      el('p', {}, `체력 +${Math.round(heal)} 회복`),
-      el('button', { class: 'btn big', onclick: go }, '다음 라운드'),
-    ]));
+    showBetween(this.root, f, heal, once);
   }
 
   onEnd() {
@@ -147,14 +153,6 @@ export class FightScreen {
       this.params.onEnd(f, replay);
       return;
     }
-    clear(this.root);
-    this.root.style.pointerEvents = 'auto';
-    this.root.classList.add('dim');
-    const r = f.result;
-    this.root.appendChild(el('div', { class: 'panel col fade-in', style: 'text-align:center;min-width:300px' }, [
-      el('h2', {}, r.winner === 'player' ? '승리!' : r.winner === 'draw' ? '무승부' : '패배…'),
-      el('p', {}, `${r.method} · ${r.round}라운드`),
-      el('button', { class: 'btn big', onclick: () => this.restart() }, '다시 하기'),
-    ]));
+    showResult(this.root, f, { audio: this.app.audio, onRetry: () => this.restart(), onNext: () => this.restart() });
   }
 }
