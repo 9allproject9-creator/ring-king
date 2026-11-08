@@ -50,19 +50,42 @@ export class Hud {
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#000';
     ctx.fillStyle = '#fff';
+    const faceR = portrait ? 18 : 21;
+    const fy = topY + barH + 8 + faceR;
+    const face = (img, x) => {
+      if (!img) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, fy, faceR, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, x - faceR, fy - faceR, faceR * 2, faceR * 2);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(x, fy, faceR, 0, Math.PI * 2);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+    };
+    const pOff = info.playerFace ? faceR * 2 + 10 : 0;
+    const oOff = info.oppFace ? faceR * 2 + 10 : 0;
+    face(info.playerFace, pad + 4 + faceR);
+    face(info.oppFace, w - pad - 4 - faceR);
     ctx.textAlign = 'left';
-    ctx.strokeText(info.playerName, pad + 4, topY + barH + 28);
-    ctx.fillText(info.playerName, pad + 4, topY + barH + 28);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#000';
+    ctx.fillStyle = '#fff';
+    ctx.strokeText(info.playerName, pad + 4 + pOff, topY + barH + 28);
+    ctx.fillText(info.playerName, pad + 4 + pOff, topY + barH + 28);
     ctx.textAlign = 'right';
     const oname = `${o.data.nick} ${o.data.name}`;
-    ctx.strokeText(oname, w - pad - 4, topY + barH + 28);
-    ctx.fillText(oname, w - pad - 4, topY + barH + 28);
+    ctx.strokeText(oname, w - pad - 4 - oOff, topY + barH + 28);
+    ctx.fillText(oname, w - pad - 4 - oOff, topY + barH + 28);
     // 체력 바
     this.bar(ctx, pad, topY, barW, barH, this.shownP, this.ghostP, '#3fd46a', false);
     this.bar(ctx, w - pad - barW, topY, barW, barH, this.shownO, this.ghostO, '#ff7a2a', true);
     // 다운 횟수 점
-    this.downDots(ctx, pad + 4, topY + barH + 42, p.downsRound, false, portrait);
-    this.downDots(ctx, w - pad - 4, topY + barH + 42, o.downsRound, true, portrait);
+    this.downDots(ctx, pad + 4 + pOff, topY + barH + 42, p.downsRound, false, portrait);
+    this.downDots(ctx, w - pad - 4 - oOff, topY + barH + 42, o.downsRound, true, portrait);
     // 페이즈 표시
     if (o.phases.length > 1) {
       for (let i = 1; i < o.phases.length; i++) {
@@ -89,7 +112,8 @@ export class Hud {
     ctx.font = `${portrait ? 32 : 36}px ${FONT_T}`;
     ctx.fillText(fight.noTimer ? '∞' : `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`, cx, topY + (portrait ? 52 : 58));
 
-    // 아래쪽: 스태미나, 가드, 별
+    // 아래쪽: 스태미나, 가드, 별 (KO 연출 중에는 숨김)
+    if (info.cinematic) return;
     const gy = L.gaugeY;
     const gw = Math.min(portrait ? 300 : 300, w * 0.36);
     const gx = cx - gw / 2;

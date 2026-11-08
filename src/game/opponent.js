@@ -51,6 +51,7 @@ export class Opponent {
     this.tellStartAt = 0;
     this.lastHitDir = 0;
     this.attacksDone = 0;
+    this.koFromDown = false;
   }
 
   enter(state, dur = 0) {

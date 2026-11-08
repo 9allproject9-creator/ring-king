@@ -6,6 +6,8 @@ import { OpponentAnimator } from '../render/opponentAnimator.js';
 import { Effects } from '../render/effects.js';
 import { Hud, drawAvoidIcon } from '../render/hud.js';
 import { roundRect } from '../render/ring.js';
+import { radialTex } from './toon.js';
+import { drawPortrait } from '../render/portrait.js';
 import { EASE } from '../render/rig.js';
 
 const HIT_WORDS = { jab: '퍽!', straight: '팍!', upper: '쾅!', special: '필살!!' };
@@ -17,8 +19,9 @@ export function hudLayout(view) {
 }
 
 export class FightView3D {
-  constructor({ stage, fight, venue = 'gym', settings = {}, playerLook, playerName = '나', audio = null, floorPattern = null }) {
+  constructor({ stage, fight, venue = 'gym', settings = {}, playerLook, playerName = '나', audio = null, floorPattern = null, portraitLook = null }) {
     this.stage = stage;
+    this.portraitLook = portraitLook;
     this.effects = new Effects();
     this.hud = new Hud();
     this.audio = audio;
@@ -38,6 +41,14 @@ export class FightView3D {
     this.headWorld = new THREE.Vector3();
     stage.arena.build(venue, floorPattern);
     this.fp = new FirstPerson(stage.camera, this.playerLook);
+    this.flashes = [];
+    for (let i = 0; i < 4; i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex('rgba(255,255,255,1)', 'rgba(255,255,255,0)'), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, depthTest: false }));
+      s.visible = false;
+      s.renderOrder = 20;
+      stage.scene.add(s);
+      this.flashes.push({ s, life: 0, max: 1, size: 0.5 });
+    }
     this.setFight(fight);
   }
 
@@ -50,6 +61,15 @@ export class FightView3D {
     this.fighter = fight.oppData.bag ? new Bag3D(fight.oppData.look) : new Fighter3D(fight.oppData.look);
     this.stage.scene.add(this.fighter.root);
     this.oppAnim = new OpponentAnimator(fight.oppData);
+    // HUD 얼굴 아이콘
+    const face = (look, expr) => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 96;
+      try { drawPortrait(c, look, expr, { bgColor: '#ffe9a8', bgColor2: '#c8701a' }); } catch (e) { /* 무시 */ }
+      return c;
+    };
+    this.oppFace = fight.oppData.bag ? null : face(fight.oppData.look, fight.oppData.look.idleExpr || 'normal');
+    this.playerFace = this.portraitLook ? face(this.portraitLook, 'focus') : null;
     this.effects.reset();
     this.effects.reduceFlash = !!this.settings.reduceFlash;
     this.hud.reset(fight);
@@ -64,6 +84,7 @@ export class FightView3D {
       this.fighter = null;
     }
     if (this.fp) this.stage.camera.remove(this.fp.rig);
+    for (const fl of this.flashes || []) { this.stage.scene.remove(fl.s); fl.s.material.dispose(); }
     this.stage.arena.group.rotation.y = 0;
   }
 
@@ -102,6 +123,22 @@ export class FightView3D {
         case 'hit': {
           this.lastActionAt = this.time;
           if (this.fighter && this.fighter.hit) this.fighter.hit(e.punch === 'jab' ? 1 : e.punch === 'straight' ? -1 : 0, e.dmg * 3);
+          {
+            const big0 = e.kind === 'counter' || e.kind === 'interrupt' || e.kind === 'special';
+            this.flash3d(this.headWorld, big0 ? 0xffe060 : 0xffffff, big0 ? 0.9 : 0.45 + Math.min(0.3, e.dmg / 40));
+            if (!this.settings.reduceMotion) this.nudge = Math.min(0.12, (this.nudge || 0) + 0.02 + e.dmg / 400);
+            if (big0 && e.kind !== 'special') this.slowmo(240, 0.45);
+            // 내 장갑에서 상대로 뻗는 속도선
+            const L0 = this.layout || { w: 1280, h: 720 };
+            const sx = L0.w / 2 + (e.punch === 'jab' ? -L0.w * 0.18 : e.punch === 'straight' ? L0.w * 0.18 : L0.w * 0.08);
+            for (let i = 0; i < 6; i++) {
+              const ox = sx + (Math.random() - 0.5) * 80;
+              const oy = L0.h * 0.85 + (Math.random() - 0.5) * 40;
+              const dx = hp.x - ox, dy = hp.y - oy;
+              const len = Math.hypot(dx, dy) || 1;
+              fx.particle(ox + dx * 0.3, oy + dy * 0.3, (dx / len) * 1.6, (dy / len) * 1.6, 120, 4, 'rgba(255,255,255,0.8)', 'line', 0);
+            }
+          }
           const big = e.kind === 'counter' || e.kind === 'interrupt' || e.kind === 'special';
           const mag = Math.min(1.6, e.dmg / 8);
           const ix = hp.x + (e.punch === 'jab' ? -30 : e.punch === 'straight' ? 30 : 0);
@@ -302,6 +339,7 @@ export class FightView3D {
           if (e.method === 'KO' || e.method === 'TKO') {
             fx.text(e.method === 'KO' ? 'K.O.!' : 'T.K.O.!', L.w / 2, L.h * 0.38, { size: 150, color: e.winner === 'player' ? '#ffe23a' : '#ff5050', life: 2200, rot: -0.05, vy: 0 });
             this.slowmo(1300, 0.25);
+            if (e.winner === 'player' && !this.fight.training) this.confettiT = 3200;
           } else {
             fx.text(e.winner === 'draw' ? '무승부' : '판정!', L.w / 2, L.h * 0.38, { size: 110, color: '#ffffff', life: 1800, rot: 0, vy: 0 });
           }
@@ -356,11 +394,12 @@ export class FightView3D {
     const ot = o.t + frozen;
     if (o.state === 'down') fall = EASE.out(Math.min(1, ot / 900));
     else if (o.state === 'getup') fall = 1 - EASE.inOut(Math.min(1, ot / Math.max(1, o.dur)));
-    else if (o.state === 'ko') { fall = EASE.in(Math.min(1, ot / 1100)); ko = true; }
+    else if (o.state === 'ko') { fall = o.koFromDown ? 1 : EASE.in(Math.min(1, ot / 1100)); ko = true; }
+    const koBlend = o.state === 'ko' && o.koFromDown ? EASE.inOut(Math.min(1, ot / 900)) : null;
     const dizzy = o.state === 'down' || o.state === 'counterStun' || o.state === 'ko' || (o.state === 'whiff' && o.t > 150) || o.state === 'shoved';
     this.fighter.update(dt, pose, {
       glowColor: this.fight.oppData.look.tellColor || '#ff5a3a',
-      fall, ko, dizzy,
+      fall, ko, dizzy, koBlend,
       sweaty: o.hp / o.maxHp < 0.3 || o.state === 'tired',
     });
     this.fighter.root.position.x = pose.x * 0.0026;
@@ -405,6 +444,56 @@ export class FightView3D {
       }
     }
     this.fp.setSpecialGlow(f.player.state === 'punch' && f.player.action === 'special');
+    // 대기 중 발놀림: 좌우로 가볍게 들썩
+    if ((o.state === 'idle' || o.state === 'chain') && !this.fight.oppData.bag) {
+      this.fighter.root.position.x += Math.sin(this.time / 650) * 0.05;
+      this.fighter.root.rotation.y = Math.sin(this.time / 900) * 0.06;
+    } else if (this.fighter.root) this.fighter.root.rotation.y *= 0.9;
+    // 내 펀치가 맞으면 카메라가 살짝 앞으로(타격감)
+    this.nudge = (this.nudge || 0) * Math.pow(0.0005, dt / 1000);
+    cam.position.z -= this.nudge;
+    // 3D 섬광
+    for (const fl of this.flashes) {
+      if (fl.life <= 0) { fl.s.visible = false; continue; }
+      fl.life -= dt;
+      const k = Math.max(0, fl.life / fl.max);
+      fl.s.visible = true;
+      fl.s.material.opacity = k;
+      fl.s.scale.setScalar(fl.size * (1.4 - k * 0.6));
+    }
+    // 승리 꽃가루
+    if (this.confettiT > 0 && this.layout) {
+      this.confettiT -= dt;
+      const cols = ['#ff5a5a', '#ffd23a', '#5ab8ff', '#7affd0', '#ff8ad8', '#ffffff'];
+      for (let i = 0; i < 3; i++) this.effects.particle(Math.random() * this.layout.w, -10, (Math.random() - 0.5) * 0.15, 0.12 + Math.random() * 0.2, 2600, 5 + Math.random() * 4, cols[Math.floor(Math.random() * cols.length)], 'spark', 0.00015);
+    }
+    // KO 연출: 1인칭에서 빠져나와 쓰러진 상대 주위를 돈다
+    const koWin = (f.phase === 'ending' || f.phase === 'over') && f.result && f.result.winner === 'player' && (f.result.method === 'KO' || f.result.method === 'TKO');
+    if (koWin && !this.settings.reduceMotion && !this.fight.training) {
+      this.koT = (this.koT || 0) + dt;
+      if (this.koT > 700) {
+        const k = EASE.inOut(Math.min(1, (this.koT - 700) / 900));
+        const root = new THREE.Vector3();
+        this.fighter.root.getWorldPosition(root);
+        const a = 0.5 + (this.koT - 700) / 4000;
+        const target = new THREE.Vector3(root.x + Math.sin(a) * 2.6, 1.25, root.z + Math.cos(a) * 2.6);
+        cam.position.lerp(target, k);
+        const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(cam.position, root.clone().add(new THREE.Vector3(0, 0.45, 0)), new THREE.Vector3(0, 1, 0)));
+        cam.quaternion.slerp(q, k);
+        this.fp.rig.visible = k < 0.5;
+      }
+    } else {
+      this.koT = 0;
+      this.fp.rig.visible = true;
+    }
+  }
+
+  flash3d(pos, color = 0xffffff, size = 0.5) {
+    const fl = this.flashes.find((x) => x.life <= 0) || this.flashes[0];
+    fl.s.position.copy(pos);
+    fl.s.material.color.set(color);
+    fl.max = fl.life = 180;
+    fl.size = size;
   }
 
   draw(ctx, view) {
@@ -420,6 +509,20 @@ export class FightView3D {
       ctx.fillStyle = `rgba(0,0,20,${0.5 * fx.dim})`;
       ctx.fillRect(0, 0, L.w, L.h);
     }
+    // 영화 같은 테두리(비네트)
+    if (!this.vig || this.vig.w !== L.w || this.vig.h !== L.h) {
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(L.w / 2));
+      c.height = Math.max(1, Math.round(L.h / 2));
+      const g = c.getContext('2d');
+      const gr = g.createRadialGradient(c.width / 2, c.height * 0.45, c.height * 0.35, c.width / 2, c.height * 0.5, c.height * 0.95);
+      gr.addColorStop(0, 'rgba(0,0,0,0)');
+      gr.addColorStop(1, 'rgba(0,0,10,0.42)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, c.width, c.height);
+      this.vig = { c, w: L.w, h: L.h };
+    }
+    ctx.drawImage(this.vig.c, 0, 0, L.w, L.h);
     fx.drawWorld(ctx);
     // 텔 강조: 피하는 방향 아이콘
     if (o.state === 'tell' && !o.fake && this.settings.tellHighlight && o.t > o.dur * 0.25) {
@@ -428,7 +531,7 @@ export class FightView3D {
     }
     fx.drawTexts(ctx);
     fx.drawScreen(ctx, L.w, L.h);
-    this.hud.draw(ctx, L, f, { playerName: this.playerName, specialKeyLabel: this.labels.special, mashLabel: this.labels.mash });
+    this.hud.draw(ctx, L, f, { playerName: this.playerName, specialKeyLabel: this.labels.special, mashLabel: this.labels.mash, oppFace: this.oppFace, playerFace: this.playerFace, cinematic: (this.koT || 0) > 700 });
     if (f.phase === 'intro') this.drawIntro(ctx, L);
     if (this.coachLine) this.drawCoachLine(ctx, L);
   }

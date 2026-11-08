@@ -455,10 +455,13 @@ export class Fighter3D {
     // 좌우 위치(root.position.x)는 화면 쪽에서 정한다
     // 넘어짐: 앞쪽 발끝을 축으로 뒤로
     const fall = o.fall || 0;
-    this.fallPivot.rotation.x = -fall * (o.ko ? 1.45 : 0.55);
+    const kb = o.koBlend; // 쓰러진 자세(0) → 완전히 누움(1)
+    const angle = kb !== null && kb !== undefined ? 0.55 + (1.45 - 0.55) * kb : (o.ko ? 1.45 : 0.55);
+    const sink = kb !== null && kb !== undefined ? 0.4 + (0.1 - 0.4) * kb : (o.ko ? 0.1 : 0.4);
+    this.fallPivot.rotation.x = -fall * angle;
     this.fallPivot.position.z = -fall * 0.15;
-    const dropPx = Math.min(70, Math.max(-40, pose.y));
-    this.body.position.y = d.hipY - dropPx * PX - fall * (o.ko ? 0.1 : 0.4);
+    const dropPx = kb !== null && kb !== undefined ? 0 : Math.min(70, Math.max(-40, pose.y));
+    this.body.position.y = d.hipY - dropPx * PX - fall * sink;
     // 공격하면 상체를 앞으로 내민다
     const reachZ = Math.max(0, Math.max(pose.glz, pose.grz) - 1.2);
     this.body.position.z = reachZ * 0.12;

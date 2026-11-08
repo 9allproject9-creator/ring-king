@@ -7,6 +7,7 @@ import { el, clear } from './dom.js';
 import { showBetween, showResult } from './fightOverlays.js';
 import { keyName } from '../input/keyboard.js';
 import { packReplay } from '../game/replay.js';
+import { playerLook2D } from './common.js';
 
 export class FightScreen {
   constructor(app) {
@@ -39,6 +40,7 @@ export class FightScreen {
       playerName: app.playerName ? app.playerName() : '나',
       audio: app.audio,
       floorPattern: params.floorPattern,
+      portraitLook: app.save ? playerLook2D(app) : null,
     });
     this.renderer.entrance = params.training ? null : app.entranceFx ? app.entranceFx() : null;
     this.baseTrack = params.training ? 'training' : 'fight_' + (params.venue === 'training' ? 'gym' : params.venue || 'gym');

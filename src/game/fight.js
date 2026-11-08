@@ -418,7 +418,11 @@ export class Fight {
       lastPunch: this.lastDown ? this.lastDown.punch : null,
       lastKind: this.lastDown ? this.lastDown.kind : null,
     };
-    if (winner === 'player') { o.enter('ko'); if (p.state !== 'idle') p.enter('idle'); }
+    if (winner === 'player') {
+      o.koFromDown = o.state === 'down'; // 이미 쓰러져 있었으면 그 자세에서 눕는다(화면용)
+      o.enter('ko');
+      if (p.state !== 'idle') p.enter('idle');
+    }
     else if (winner === 'opponent') o.enter('win');
     this.down = null;
     this.phase = 'ending';
