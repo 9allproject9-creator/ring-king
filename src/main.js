@@ -2,6 +2,7 @@
 import { View } from './render/view.js';
 import { Stage3D } from './render3d/stage.js';
 import { AudioEngine } from './audio/sfx.js';
+import { Music } from './audio/music.js';
 import { Actions } from './input/actions.js';
 import { Keyboard } from './input/keyboard.js';
 import { SaveStore } from './save.js';
@@ -44,6 +45,7 @@ class App {
     this.stage.resize(this.view);
     this.audio = new AudioEngine();
     this.audio.setVolumes(this.settings.sfx, this.settings.music);
+    this.music = new Music(this.audio);
     this.actions = new Actions();
     this.keyboard = new Keyboard(this.actions);
     this.keyboard.setKeys(this.settings.keys);
@@ -109,6 +111,11 @@ class App {
   floorPattern() {
     const f = getItem(this.save.data.equipped.floor);
     return f ? f.pattern : null;
+  }
+
+  entranceFx() {
+    const e = getItem(this.save.data.equipped.entrance);
+    return e ? e.fx : 'none';
   }
 
   entranceTrack() {

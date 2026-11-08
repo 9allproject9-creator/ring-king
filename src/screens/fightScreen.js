@@ -37,6 +37,9 @@ export class FightScreen {
       audio: app.audio,
       floorPattern: params.floorPattern,
     });
+    this.renderer.entrance = params.training ? null : app.entranceFx ? app.entranceFx() : null;
+    this.baseTrack = params.training ? 'training' : 'fight_' + (params.venue === 'training' ? 'gym' : params.venue || 'gym');
+    this.curTrack = null;
     if (params.forceTell) this.renderer.settings = { ...app.settings, tellHighlight: true };
     if (params.setup) params.setup(this.renderer);
     this.acc = 0;
@@ -53,6 +56,7 @@ export class FightScreen {
     this.app.actions.gameActive = false;
     this.app.audio.setCrowd(false);
     this.root && this.root.remove();
+    this.app.music && this.app.music.setIntensity(0);
     if (this.renderer) this.renderer.dispose();
     this.renderer = null;
   }
@@ -120,6 +124,23 @@ export class FightScreen {
       steps++;
     }
     r.update(dt, Math.min(DT, this.acc) * (f.hitstop > 0 ? 0 : 1));
+    this.updateMusic();
+  }
+
+  // 음악: 대회 단계별 곡, 보스 페이즈 곡, 체력이 낮으면 긴박하게, 끝나면 승리/패배
+  updateMusic() {
+    const m = this.app.music;
+    if (!m) return;
+    const f = this.fight;
+    let track = (f.opp.ph && f.opp.ph.music) || this.baseTrack;
+    if (f.phase === 'ending' || f.phase === 'over') track = f.result && f.result.winner === 'player' ? 'victory' : 'defeat';
+    if (f.training) track = 'training';
+    if (track !== this.curTrack) {
+      this.curTrack = track;
+      m.play(track);
+    }
+    const low = f.player.hp / f.player.maxHp;
+    m.setIntensity(f.phase === 'fight' && low < 0.35 ? (0.35 - low) / 0.35 + 0.3 : 0);
   }
 
   draw(ctx, view) {

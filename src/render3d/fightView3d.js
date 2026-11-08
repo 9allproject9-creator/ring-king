@@ -436,6 +436,18 @@ export class FightView3D {
   drawIntro(ctx, L) {
     const f = this.fight;
     const k = f.phaseT / 1600;
+    // 입장 연출(상점 아이템)
+    if (f.round === 1 && this.entrance && this.entrance !== 'none' && Math.random() < 0.7 && !this.settings.reduceMotion) {
+      const fx = this.effects;
+      if (this.entrance === 'confetti') {
+        const cols = ['#ff5a5a', '#ffd23a', '#5ab8ff', '#7affd0', '#ff8ad8'];
+        fx.particle(Math.random() * L.w, -10, (Math.random() - 0.5) * 0.2, 0.15 + Math.random() * 0.2, 1800, 6, cols[Math.floor(Math.random() * 5)], 'spark', 0.0002);
+      } else if (this.entrance === 'fire') {
+        for (const x of [L.w * 0.08, L.w * 0.92]) fx.particle(x + (Math.random() - 0.5) * 40, L.h, (Math.random() - 0.5) * 0.1, -0.6 - Math.random() * 0.4, 700, 14, Math.random() < 0.5 ? '#ff6a1a' : '#ffd23a', 'dot', 0.0006);
+      } else if (this.entrance === 'stars') {
+        fx.particle(Math.random() * L.w, Math.random() * L.h * 0.6, 0, 0.05, 900, 9, '#ffe23a', 'star', 0);
+      }
+    }
     ctx.save();
     ctx.globalAlpha = Math.max(0, Math.min(1, (1 - k) * 3));
     ctx.font = `${Math.min(110, L.w / 9)}px "Black Han Sans", "Jua", sans-serif`;
