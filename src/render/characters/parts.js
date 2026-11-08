@@ -21,7 +21,15 @@ export const EXPRESSIONS = {
   block: { eye: 'squint', brow: -0.35, mouth: 'teeth' },
   shout: { eye: 'focus', brow: -0.5, mouth: 'shout' },
   sly: { eye: 'half', brow: -0.1, browUp: true, mouth: 'smirk' },
+  blink: { eye: 'closed', brow: 0, mouth: 'line' },
+  calm: { eye: 'half', brow: 0, mouth: 'line' },
+  grin: { eye: 'open', brow: -0.15, mouth: 'grin' },
 };
+
+// 캐릭터별 표정 바꾸기: look.exprMap = { normal: 'calm', ... }
+export function resolveExpr(look, expr) {
+  return (look.exprMap && look.exprMap[expr]) || expr;
+}
 
 export function bodyDims(look) {
   const b = look.build;
@@ -359,7 +367,7 @@ export function drawHead(ctx, look, d, pose, opt) {
 }
 
 export function drawFace(ctx, look, R, pose, opt) {
-  const ex = EXPRESSIONS[pose.expr] || EXPRESSIONS.normal;
+  const ex = EXPRESSIONS[resolveExpr(look, pose.expr)] || EXPRESSIONS.normal;
   const eyeY = -R * 0.04;
   const eyeX = R * 0.37;
   const eyeSize = look.eyes === 'big' ? 1.25 : look.eyes === 'small' ? 0.8 : look.eyes === 'sharp' ? 0.95 : 1;
@@ -498,6 +506,13 @@ function drawEye(ctx, type, r, s, look, opt) {
       ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.arc(0, r * 0.4, r, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+      break;
+    case 'closed':
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-r * 1.0, r * 0.1);
+      ctx.quadraticCurveTo(0, r * 0.5, r * 1.0, r * 0.1);
       ctx.stroke();
       break;
     case 'squint':

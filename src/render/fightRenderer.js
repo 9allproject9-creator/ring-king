@@ -231,9 +231,16 @@ export class FightRenderer {
         case 'oppTell':
           if (!e.fake) a && a.sfx('tell', { ms: e.ms });
           break;
-        case 'oppAttack':
+        case 'oppAttack': {
           a && a.sfx('whoosh', { punch: 'opp' });
+          // 속도선: 주먹이 나에게 날아오는 느낌
+          for (let i = 0; i < 9; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const r0 = 160 + Math.random() * 200;
+            fx.particle(640 + Math.cos(ang) * r0, 470 + Math.sin(ang) * r0 * 0.6, Math.cos(ang) * 0.6, Math.sin(ang) * 0.4, 160, 3, 'rgba(255,255,255,0.7)', 'line', 0);
+          }
           break;
+        }
         case 'finish':
           if (e.method === 'KO' || e.method === 'TKO') {
             fx.text(e.method === 'KO' ? 'K.O.!' : 'T.K.O.!', 640, 300, { size: 150, color: e.winner === 'player' ? '#ffe23a' : '#ff5050', life: 2200, rot: -0.05, vy: 0 });

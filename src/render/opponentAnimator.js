@@ -149,6 +149,15 @@ export class OpponentAnimator {
     if (o.state === 'tell' && prog > 0.75 && !o.fake) {
       target.x += Math.sin(this.time / 18) * 2.5;
     }
+    // 눈 깜빡임 (대기 중에만, 텔과 헷갈리지 않게)
+    this.blinkT = (this.blinkT ?? 2500) - dt;
+    if (this.blinkT < 0) this.blinkT = 2200 + Math.random() * 2800;
+    if (this.blinkT < 110 && (o.state === 'idle' || o.state === 'intro' || o.state === 'chain') && (target.expr === 'normal' || target.expr === 'focus')) target.expr = 'blink';
+    // 공격이 닿는 순간: 몸 전체가 앞으로 늘어남(찌그러짐·늘어남)
+    if (o.state === 'active' && prog < 0.5) {
+      target.sy *= 1 + 0.05 * Math.sin(prog * Math.PI * 2);
+      target.sx *= 1 - 0.03 * Math.sin(prog * Math.PI * 2);
+    }
     // 체력 낮음: 지친 표정
     if ((o.state === 'idle' || o.state === 'chain') && o.hp / o.maxHp < 0.3 && target.expr === 'normal') target.expr = 'tired';
     if ((o.state === 'idle' || o.state === 'intro') && target.expr === 'normal' && this.data.look.idleExpr) target.expr = this.data.look.idleExpr;
