@@ -140,6 +140,7 @@ export class FightView3D {
           break;
         case 'hit': {
           this.lastActionAt = this.time;
+          if (!this.settings.reduceMotion && this.fp.onPunchHit) this.fp.onPunchHit(e.punch);
           if (this.fighter && this.fighter.hit) this.fighter.hit(e.punch === 'jab' ? 1 : e.punch === 'straight' ? -1 : 0, e.dmg * 3);
           {
             const big0 = e.kind === 'counter' || e.kind === 'interrupt' || e.kind === 'special';
@@ -151,7 +152,7 @@ export class FightView3D {
             const sx = L0.w / 2 + (e.punch === 'jab' ? -L0.w * 0.18 : e.punch === 'straight' ? L0.w * 0.18 : L0.w * 0.08);
             for (let i = 0; i < 6; i++) {
               const ox = sx + (Math.random() - 0.5) * 80;
-              const oy = L0.h * 0.85 + (Math.random() - 0.5) * 40;
+              const oy = (e.punch === 'upper' ? L0.h * 1.0 : L0.h * 0.85) + (Math.random() - 0.5) * 40;
               const dx = hp.x - ox, dy = hp.y - oy;
               const len = Math.hypot(dx, dy) || 1;
               fx.particle(ox + dx * 0.3, oy + dy * 0.3, (dx / len) * 1.6, (dy / len) * 1.6, 120, 4, 'rgba(255,255,255,0.8)', 'line', 0);

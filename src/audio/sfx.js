@@ -131,9 +131,19 @@ export class AudioEngine {
     if (!this.ctx || this.ctx.state !== 'running') return;
     switch (name) {
       case 'whoosh': {
-        const fast = p.punch === 'jab';
-        const big = p.punch === 'upper' || p.punch === 'special' || p.punch === 'opp';
-        this.noiseHit({ dur: fast ? 0.09 : big ? 0.2 : 0.13, type: 'bandpass', f0: big ? 600 : 1400, f1: big ? 2400 : 3600, q: 1.2, gain: big ? 0.22 : 0.15 });
+        // 펀치마다 다른 바람 소리: 잽은 짧고 날카롭게, 스트레이트는 묵직하게, 어퍼는 아래에서 위로 솟구치게
+        if (p.punch === 'jab') {
+          this.noiseHit({ dur: 0.075, type: 'bandpass', f0: 1800, f1: 4200, q: 1.6, gain: 0.16 });
+        } else if (p.punch === 'straight') {
+          this.noiseHit({ dur: 0.15, type: 'bandpass', f0: 800, f1: 3000, q: 1.1, gain: 0.19 });
+          this.tone({ type: 'sine', f0: 120, f1: 70, dur: 0.1, gain: 0.06 });
+        } else if (p.punch === 'upper') {
+          this.noiseHit({ dur: 0.24, type: 'bandpass', f0: 350, f1: 2600, q: 1.3, gain: 0.22 });
+          this.tone({ type: 'sine', f0: 70, f1: 160, dur: 0.2, gain: 0.08 });
+        } else {
+          const big = p.punch === 'special' || p.punch === 'opp';
+          this.noiseHit({ dur: big ? 0.2 : 0.13, type: 'bandpass', f0: big ? 600 : 1400, f1: big ? 2400 : 3600, q: 1.2, gain: big ? 0.22 : 0.15 });
+        }
         break;
       }
       case 'swish':
@@ -145,6 +155,10 @@ export class AudioEngine {
         this.tone({ type: 'sine', f0: 170 * (counter ? 1.1 : 1), f1: 45, dur: 0.18 * m, gain: 0.55 * Math.min(1.3, m) });
         this.noiseHit({ dur: 0.07 + 0.04 * m, type: 'lowpass', f0: 3000, f1: 400, gain: 0.45 });
         this.tone({ type: 'triangle', f0: 90, f1: 40, dur: 0.12 * m, gain: 0.3 });
+        // 펀치별 추가 층: 잽은 찰싹, 스트레이트는 퍽, 어퍼는 쿵
+        if (p.punch === 'jab') this.noiseHit({ dur: 0.04, type: 'highpass', f0: 4000, f1: 2500, gain: 0.22 });
+        if (p.punch === 'straight') this.tone({ type: 'sine', f0: 110, f1: 50, dur: 0.16, gain: 0.25, delay: 0.01 });
+        if (p.punch === 'upper') { this.tone({ type: 'sine', f0: 75, f1: 32, dur: 0.32, gain: 0.4 }); this.noiseHit({ dur: 0.18, type: 'lowpass', f0: 900, f1: 120, gain: 0.3, delay: 0.015 }); }
         if (counter) {
           this.tone({ type: 'square', f0: 880, f1: 880, dur: 0.08, gain: 0.08, delay: 0.02 });
           this.tone({ type: 'square', f0: 1320, f1: 1320, dur: 0.12, gain: 0.08, delay: 0.09 });

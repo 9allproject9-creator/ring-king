@@ -246,8 +246,9 @@ export class Fighter3D {
     main.scale.set(d.GR, d.GR * 1.08, d.GR * 1.02);
     main.position.y = d.GR * 0.35;
     const thumb = this.add(glove, GEO.sphere, M.gloves);
-    thumb.scale.set(d.GR * 0.35, d.GR * 0.55, d.GR * 0.38);
-    thumb.position.set(-sg * d.GR * 0.75, d.GR * 0.25, d.GR * 0.35);
+    // 엄지: 장갑 옆에 납작하게 붙여서 손가락처럼 튀어나오지 않게
+    thumb.scale.set(d.GR * 0.28, d.GR * 0.5, d.GR * 0.34);
+    thumb.position.set(-sg * d.GR * 0.68, d.GR * 0.3, d.GR * 0.28);
     const cuff = this.add(glove, GEO.cyl, M.cuff);
     cuff.scale.set(d.GR * 0.62, d.GR * 0.6, d.GR * 0.62);
     cuff.position.y = -d.GR * 0.55;
