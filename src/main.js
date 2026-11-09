@@ -25,6 +25,7 @@ import { checkAchievements } from './data/achievements.js';
 import { TutorialScreen } from './screens/tutorial.js';
 import { SettingsScreen } from './screens/settings.js';
 import { ModesScreen, ReplayScreen } from './screens/modes.js';
+import { OnlineLobby, OnlineFight } from './screens/online.js';
 import { OPPONENTS } from './data/opponents/index.js';
 import { getOpponent, leagueOf } from './data/opponents/index.js';
 import { getItem } from './data/shop.js';
@@ -76,6 +77,8 @@ class App {
       settings: new SettingsScreen(this),
       modes: new ModesScreen(this),
       replay: new ReplayScreen(this),
+      online: new OnlineLobby(this),
+      onlineFight: new OnlineFight(this),
     };
     this.applySettings();
     this.current = null;
@@ -101,7 +104,7 @@ class App {
     if (this.current && this.current.exit) this.current.exit();
     this.actions.clear();
     // 배경용 3D 상대는 배경을 쓰지 않는 화면(경기·체육관)에서는 치운다
-    if (name === 'fight' || name === 'gym' || name === 'lineup' || name === 'replay') this.backdrop.clearFighter();
+    if (name === 'fight' || name === 'gym' || name === 'lineup' || name === 'replay' || name === 'onlineFight') this.backdrop.clearFighter();
     this.current = next;
     this.currentName = name;
     this.current.enter(params);

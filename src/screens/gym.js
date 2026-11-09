@@ -138,6 +138,7 @@ export class GymScreen extends Screen {
     this.stations = [
       { id: 'ring', label: '🥊 링 — 커리어', pos: new THREE.Vector3(0, 1.8, -3.0), r: 2.0, go: () => app.go('map') },
       { id: 'train', label: '💪 훈련 캠프', pos: new THREE.Vector3(-6.2, 2.2, -2.9), r: 1.7, go: () => app.go('training') },
+      { id: 'online', label: '🌐 온라인 1:1 대전', pos: new THREE.Vector3(-8.0, 2.3, 0.9), r: 1.9, go: () => app.go('online') },
       { id: 'speed', label: '⚡ 스피드백 (펀치로 쳐 보기)', pos: new THREE.Vector3(-8.2, 2.5, 3.2), r: 1.6, go: () => this.say('스피드백은 J·K로 빠르게 툭툭 쳐라!') },
       { id: 'shop', label: '🛍️ 상점', pos: new THREE.Vector3(6.9, 1.9, -7.0), r: 1.9, go: () => app.go('shop') },
       { id: 'trophy', label: '🏅 트로피 — 도전 과제', pos: new THREE.Vector3(8.2, 2.3, -2.3), r: 1.8, go: () => app.go('achievements') },

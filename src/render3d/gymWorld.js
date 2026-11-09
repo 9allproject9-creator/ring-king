@@ -495,6 +495,31 @@ export function buildGym() {
   g.add(beltGroup);
   colliders.push({ x: 7.8, z: -10.0, r: 0.7 });
 
+  // 온라인 대전 모니터 (왼쪽 벽)
+  const tvTex = canvasTex(256, 160, (c, w, h) => {
+    const gr = c.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#0a2a5a');
+    gr.addColorStop(1, '#1a6ad8');
+    c.fillStyle = gr;
+    c.fillRect(0, 0, w, h);
+    c.fillStyle = '#fff';
+    c.font = '34px "Black Han Sans", "Jua", sans-serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText('🌐 온라인 1:1', w / 2, 62);
+    c.font = '22px "Jua", sans-serif';
+    c.fillStyle = '#ffd23a';
+    c.fillText('친구와 실시간 대결!', w / 2, 112);
+  });
+  const tv = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.15, 1.8), toonMat('#111'));
+  tv.add(new THREE.Mesh(tv.geometry, ol));
+  tv.position.set(ROOM.x0 + 0.08, 2.3, 0.9);
+  g.add(tv);
+  const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 1.0), new THREE.MeshBasicMaterial({ map: tvTex }));
+  tvScreen.position.set(ROOM.x0 + 0.15, 2.3, 0.9);
+  tvScreen.rotation.y = Math.PI / 2;
+  g.add(tvScreen);
+
   // 조명
   g.add(new THREE.HemisphereLight(0xfff4e0, 0x5a3a22, 1.25));
   const dl = new THREE.DirectionalLight(0xfff0d8, 1.1);

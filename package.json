@@ -11,7 +11,9 @@
     "start": "node server.mjs",
     "test": "node --test tests/",
     "balance": "node tools/balance-sim.mjs",
-    "shots": "node tools/screenshots.mjs"
+    "shots": "node tools/screenshots.mjs",
+    "server": "node server.mjs",
+    "play": "vite build && node server.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -21,6 +23,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
   }
 }

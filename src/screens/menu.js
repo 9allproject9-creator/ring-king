@@ -16,6 +16,7 @@ export class MenuScreen extends Screen {
     ]);
     const list = [
       item('🚶', '체육관 걸어 다니기', 'WASD로 돌아다녀요', () => app.go('gym'), 'blue'),
+      item('🌐', '온라인 1:1', '친구·다른 사람과 실시간 대결', () => app.go('online'), 'red'),
       item('🥊', '커리어', d.career.cleared ? '클리어! ★' + totalStars(d) : `★ ${totalStars(d)} / 30`, () => app.go('map'), 'big'),
       item('💪', '훈련 캠프', '샌드백 · 미트 · 피하기 · 줄넘기', () => app.go('training'), 'blue'),
       item('🛍️', '상점', '꾸미기', () => app.go('shop'), 'green'),

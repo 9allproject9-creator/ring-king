@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { attachOnline, onlineStats } from './online.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT) || 3000;
@@ -28,8 +29,10 @@ function send(res, status, body, headers = {}) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/health') return send(res, 200, 'ok', { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' });
+  if (url.pathname === '/online-stats') return send(res, 200, JSON.stringify(onlineStats()), { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method Not Allowed');
-  let rel = decodeURIComponent(url.pathname);
+  let rel;
+  try { rel = decodeURIComponent(url.pathname); } catch (e) { return send(res, 400, 'Bad Request'); }
   if (rel.endsWith('/')) rel += 'index.html';
   const file = path.normalize(path.join(ROOT, rel));
   if (!file.startsWith(ROOT)) return send(res, 403, 'Forbidden');
@@ -51,5 +54,7 @@ const server = http.createServer((req, res) => {
     });
   });
 });
+
+attachOnline(server);
 
 server.listen(PORT, () => console.log(`링의 왕 서버: http://localhost:${PORT}`));

@@ -171,7 +171,9 @@ export class OpponentAnimator {
       const k = EASE.inOut(prog);
       tx = (o.fromPos + (o.pos - o.fromPos) * k) * POS_X;
     }
+    if (!Number.isFinite(tx)) tx = 0;
     this.x += (tx - this.x) * Math.min(1, dt / 70);
+    if (!Number.isFinite(this.x)) this.x = 0;
     const out = this.out;
     for (const k of Object.keys(pose)) out[k] = pose[k];
     out.hx += this.headSpringX.update(dt);

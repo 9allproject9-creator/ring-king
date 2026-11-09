@@ -405,6 +405,12 @@ export class FightView3D {
     const frozen = f.hitstop > 0 ? 0 : alphaMs;
     const pose = this.oppAnim.update(dt, o, frozen);
     if (this.poseOverride) this.poseOverride(pose, f);
+    // 온라인 상대의 피하기(좌·우·숙이기)
+    if (o.dodge) {
+      const k = o.dodgeK ?? 1;
+      if (o.dodge === 'duck') { pose.y += 60 * k; pose.sy *= 1 - 0.08 * k; pose.hy += 20 * k; }
+      else { const sg = o.dodge === 'L' ? 1 : -1; pose.x += sg * 70 * k; pose.rot += sg * 0.22 * k; pose.hx += sg * 20 * k; }
+    }
     const tellReal = o.state === 'tell' && !o.fake;
     this.fighter.setHighlight(tellReal && this.settings.tellHighlight ? (this.fight.oppData.look.tellColor || '#ff5a3a') : null);
     let fall = 0;
