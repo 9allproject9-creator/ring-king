@@ -33,6 +33,8 @@ npm run play
 개발용 주소: `?opp=fox` (바로 그 상대와 경기), `?dev=lineup` (상대 10명 3D 모델 한 줄로 보기)
 
 ## 배포 (Render 무료)
+**지금 할 수 있는 주소: https://ring-king.onrender.com** (main 브랜치에 올리면 자동으로 다시 배포됨. 무료 플랜이라 15분 동안 아무도 없으면 잠들고, 다음 접속 때 30초~1분 깨어나는 시간이 걸림)
+
 1. 이 폴더를 GitHub 저장소로 올린다.
 2. Render에서 **New → Blueprint**를 고르고 저장소를 연결하면 `render.yaml`대로 만들어진다.
    (plan free, region singapore, build `npm ci && npm run build`, start `node server.mjs`, health `/health`)
