@@ -7,15 +7,21 @@ export class TitleScreen extends Screen {
   enter() {
     this.app.backdrop.set({ venue: 'stadium', opponent: getOpponent('atlas'), mode: 'orbit' });
     this.app.music && this.app.music.play('menu');
-    this.mount(el('div', { class: 'screen', style: 'justify-content:space-between;cursor:pointer', onclick: () => this.start() }, [
+    this.mount(el('div', { class: 'screen vig', style: 'justify-content:space-between;cursor:pointer', onclick: () => this.start() }, [
       el('div'),
-      el('div', { class: 'col fade-in', style: 'align-items:center;text-align:center;gap:6px' }, [
-        el('div', { style: 'font-family:var(--round);font-size:clamp(16px,3vw,24px);color:#fff;text-shadow:0 2px 0 #000;letter-spacing:4px' }, '읽고 · 피하고 · 때려라!'),
-        el('h1', { style: 'font-size:clamp(64px,15vw,150px)' }, '링의 왕'),
+      el('div', { class: 'title-wrap fade-in' }, [
+        el('div', { class: 'title-crown' }, '👑'),
+        el('div', { class: 'title-row' }, [
+          el('span', { class: 'title-glove' }, '🥊'),
+          el('h1', { class: 'title-logo' }, '링의 왕'),
+          el('span', { class: 'title-glove r' }, '🥊'),
+        ]),
+        el('div', { class: 'title-sub' }, '읽고 · 피하고 · 때려라!'),
       ]),
-      el('div', { class: 'col', style: 'align-items:center;gap:10px;margin-bottom:4vh' }, [
-        el('div', { class: 'title-press', style: 'font-family:var(--round);font-size:clamp(20px,3.6vw,30px);color:#ffe9a0;text-shadow:0 3px 0 #000' }, '화면을 누르거나 아무 키나 눌러 시작'),
+      el('div', { class: 'col', style: 'align-items:center;gap:12px;margin-bottom:4vh' }, [
+        el('div', { class: 'title-press' }, '화면을 누르거나 아무 키나 눌러 시작'),
         el('div', { class: 'small' }, this.app.save.ok ? '' : '⚠ 이 브라우저에서는 저장이 안 돼요(게임은 할 수 있어요)'),
+        el('div', { class: 'title-foot' }, '혼자 커리어 · 훈련 · 온라인 1:1'),
       ]),
     ]));
   }

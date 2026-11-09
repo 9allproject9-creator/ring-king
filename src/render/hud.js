@@ -96,12 +96,31 @@ export class Hud {
     }
     // 라운드와 시간
     const cx = w / 2;
-    ctx.fillStyle = 'rgba(10,10,20,0.75)';
-    roundRect(ctx, cx - 52, topY - 6, 104, portrait ? 66 : 74, 12);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    {
+      // 시간 배지: 금색 테두리 + 어두운 남색 판 + 윗부분 광택
+      const bh = portrait ? 66 : 74;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 3;
+      const fg = ctx.createLinearGradient(0, topY - 9, 0, topY + bh);
+      fg.addColorStop(0, '#fff0a8');
+      fg.addColorStop(0.5, '#e0a520');
+      fg.addColorStop(1, '#7a4a08');
+      ctx.fillStyle = fg;
+      roundRect(ctx, cx - 57, topY - 10, 114, bh + 8, 16);
+      ctx.fill();
+      ctx.restore();
+      const pg = ctx.createLinearGradient(0, topY - 6, 0, topY + bh);
+      pg.addColorStop(0, '#2c2458');
+      pg.addColorStop(1, '#0c0a1e');
+      ctx.fillStyle = pg;
+      roundRect(ctx, cx - 53, topY - 6, 106, bh, 13);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      roundRect(ctx, cx - 49, topY - 3, 98, bh * 0.36, 10);
+      ctx.fill();
+    }
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffd23a';
     ctx.font = `${portrait ? 18 : 20}px ${FONT_T}`;
@@ -191,35 +210,101 @@ export class Hud {
     }
   }
 
+  // 체력 바: 비스듬한 모양 + 금색 테두리 + 눈금 + 광택 (격투 게임 느낌)
   bar(ctx, x, y, w, h, v, ghost, color, right) {
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
-    roundRect(ctx, x - 4, y - 4, w + 8, h + 8, 10);
+    const s = h * 0.55; // 기울기
+    const shape = (px, py, pw, ph, sk) => {
+      ctx.beginPath();
+      if (!right) {
+        ctx.moveTo(px, py); ctx.lineTo(px + pw, py); ctx.lineTo(px + pw - sk, py + ph); ctx.lineTo(px, py + ph);
+      } else {
+        ctx.moveTo(px, py); ctx.lineTo(px + pw, py); ctx.lineTo(px + pw, py + ph); ctx.lineTo(px + sk, py + ph);
+      }
+      ctx.closePath();
+    };
+    // 바깥 그림자 + 금색 테두리
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    shape(x - 5, y - 5, w + 10, h + 10, s + 3);
+    const fg = ctx.createLinearGradient(0, y - 5, 0, y + h + 5);
+    fg.addColorStop(0, '#fff0a8');
+    fg.addColorStop(0.45, '#e0a520');
+    fg.addColorStop(1, '#7a4a08');
+    ctx.fillStyle = fg;
     ctx.fill();
-    ctx.fillStyle = '#3a1010';
+    ctx.restore();
+    shape(x - 2, y - 2, w + 4, h + 4, s + 1);
+    ctx.fillStyle = '#140a0a';
+    ctx.fill();
+    // 안쪽 내용은 모양으로 잘라서 그림
+    ctx.save();
+    shape(x, y, w, h, s);
+    ctx.clip();
+    const bg = ctx.createLinearGradient(0, y, 0, y + h);
+    bg.addColorStop(0, '#4a1414');
+    bg.addColorStop(1, '#220808');
+    ctx.fillStyle = bg;
     ctx.fillRect(x, y, w, h);
     const gw = w * Math.max(0, ghost);
     const vw = w * Math.max(0, v);
-    ctx.fillStyle = '#ffffff';
+    // 방금 깎인 부분(흰색 → 빨강으로 사라짐)
+    ctx.fillStyle = '#ffe0c0';
     ctx.fillRect(right ? x + w - gw : x, y, gw, h);
     const col = v < 0.3 ? (Math.floor(this.time / 220) % 2 ? '#ff3a3a' : '#ff7a7a') : color;
     const g = ctx.createLinearGradient(0, y, 0, y + h);
-    g.addColorStop(0, col);
+    g.addColorStop(0, lightSimple(col));
+    g.addColorStop(0.5, col);
     g.addColorStop(1, shadeSimple(col));
     ctx.fillStyle = g;
     ctx.fillRect(right ? x + w - vw : x, y, vw, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillRect(right ? x + w - vw : x, y + 3, vw, h * 0.25);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, w, h);
+    // 광택
+    const gl = ctx.createLinearGradient(0, y, 0, y + h * 0.5);
+    gl.addColorStop(0, 'rgba(255,255,255,0.55)');
+    gl.addColorStop(1, 'rgba(255,255,255,0.05)');
+    ctx.fillStyle = gl;
+    ctx.fillRect(right ? x + w - vw : x, y + 2, vw, h * 0.42);
+    // 10칸 눈금
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    for (let i = 1; i < 10; i++) ctx.fillRect(x + (w * i) / 10 - 1, y, 2, h);
+    // 체력 끝 반짝이
+    if (vw > 4) {
+      const ex = right ? x + w - vw : x + vw;
+      const eg = ctx.createLinearGradient(ex - 8, 0, ex + 8, 0);
+      eg.addColorStop(0, 'rgba(255,255,255,0)');
+      eg.addColorStop(0.5, 'rgba(255,255,255,0.7)');
+      eg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = eg;
+      ctx.fillRect(ex - 8, y, 16, h);
+    }
+    ctx.restore();
   }
 
   smallBar(ctx, x, y, w, h, v, color, label, warn) {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    roundRect(ctx, x - 3, y - 3, w + 6, h + 6, 7);
+    ctx.fillStyle = 'rgba(8,6,20,0.72)';
+    roundRect(ctx, x - 3, y - 3, w + 6, h + 6, (h + 6) / 2);
     ctx.fill();
-    ctx.fillStyle = warn && Math.floor(this.time / 200) % 2 ? '#ff5050' : color;
-    ctx.fillRect(x, y, w * Math.max(0, Math.min(1, v)), h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    const sv = Math.max(0, Math.min(1, v));
+    if (sv > 0) {
+      const c0 = warn && Math.floor(this.time / 200) % 2 ? '#ff5050' : color;
+      ctx.save();
+      roundRect(ctx, x, y, Math.max(h, w * sv), h, h / 2);
+      ctx.clip();
+      const g = ctx.createLinearGradient(0, y, 0, y + h);
+      g.addColorStop(0, lightSimple(c0));
+      g.addColorStop(0.55, c0);
+      g.addColorStop(1, shadeSimple(c0));
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, w * sv, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(x, y + 1, w * sv, h * 0.35);
+      ctx.restore();
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0)';
     if (label) {
       ctx.font = `bold ${h - 1}px ${FONT_B}`;
       ctx.fillStyle = '#fff';
@@ -295,6 +380,12 @@ export function drawAvoidIcon(ctx, x, y, avoid, color) {
     ctx.fill();
   }
   ctx.restore();
+}
+
+function lightSimple(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (c) => Math.min(255, c + (255 - c) * 0.45) | 0;
+  return `rgb(${f((n >> 16) & 255)},${f((n >> 8) & 255)},${f(n & 255)})`;
 }
 
 function shadeSimple(hex) {

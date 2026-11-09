@@ -28,12 +28,12 @@ export class MenuScreen extends Screen {
     }
     list.push(item('🎓', '튜토리얼', '조작 다시 배우기', () => app.go('tutorial'), 'secondary'));
     list.push(item('⚙️', '설정', app.save.ok ? '' : '⚠ 저장 안 됨', () => app.go('settings'), 'secondary'));
-    this.mount(el('div', { class: 'screen' }, [
+    this.mount(el('div', { class: 'screen top' }, [
       topBar(app, null, null),
-      el('div', { class: 'col fade-in', style: 'align-items:center;gap:14px;margin-top:40px' }, [
-        el('h1', { style: 'font-size:clamp(44px,9vw,84px)' }, '링의 왕'),
-        el('div', { style: 'font-family:var(--round);font-size:20px;text-shadow:0 2px 0 #000' }, `${d.profile.name} 선수, 오늘도 힘내자!`),
-        el('div', { class: 'menu-list' }, list),
+      el('div', { class: 'col fade-in menu-wrap' }, [
+        el('h1', { class: 'menu-logo' }, '링의 왕'),
+        el('div', { class: 'menu-greet' }, `${d.profile.name} 선수, 오늘도 힘내자!`),
+        el('div', { class: 'menu-list two' }, list),
       ]),
     ]));
     setTimeout(() => { const b = this.root && this.root.querySelector('.menu-list .btn'); b && b.focus(); }, 50);
