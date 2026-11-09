@@ -67,7 +67,35 @@ export class Arena {
     g.add(ground);
 
     // 링 단상
-    const apron = new THREE.Mesh(new THREE.BoxGeometry(RING * 2 + 0.6, 1.0, RING * 2 + 0.6), toonMat(v.apron));
+    // 링 옆 치마: 장소 이름과 별이 찍힌 천
+    const skirtTex = canvasTex(1024, 128, (c, w, h) => {
+      const base = new THREE.Color(v.apron);
+      const gr = c.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, '#' + base.clone().lerp(new THREE.Color('#ffffff'), 0.12).getHexString());
+      gr.addColorStop(1, '#' + base.clone().multiplyScalar(0.6).getHexString());
+      c.fillStyle = gr;
+      c.fillRect(0, 0, w, h);
+      c.fillStyle = '#ffd23a';
+      c.fillRect(0, 6, w, 6);
+      c.fillRect(0, h - 12, w, 6);
+      c.font = '58px "Black Han Sans", "Jua", sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.lineWidth = 6;
+      c.strokeStyle = 'rgba(0,0,0,0.55)';
+      c.fillStyle = '#ffffff';
+      c.strokeText('링의 왕', w * 0.3, h / 2 + 3);
+      c.fillText('링의 왕', w * 0.3, h / 2 + 3);
+      c.fillStyle = '#ffe9a0';
+      c.strokeText(v.name || v.banner, w * 0.72, h / 2 + 3);
+      c.fillText(v.name || v.banner, w * 0.72, h / 2 + 3);
+      c.font = '44px sans-serif';
+      c.fillStyle = '#ffd23a';
+      for (const x of [0.06, 0.51, 0.94]) c.fillText('★', w * x, h / 2 + 3);
+    });
+    const skirtMat = toonMat('#ffffff', { map: skirtTex });
+    const apronTop = toonMat(v.apron);
+    const apron = new THREE.Mesh(new THREE.BoxGeometry(RING * 2 + 0.6, 1.0, RING * 2 + 0.6), [skirtMat, skirtMat, apronTop, apronTop, skirtMat, skirtMat]);
     apron.position.y = -0.5;
     g.add(apron);
     const apronOl = new THREE.Mesh(apron.geometry, ol);
@@ -184,16 +212,87 @@ export class Arena {
     }
 
     // 현수막
-    const banner = canvasTex(512, 96, (c, w, h) => {
-      c.fillStyle = v.logo;
+    const banner = canvasTex(1024, 192, (c, w, h) => {
+      // 바탕: 위는 밝고 아래는 어두운 그라디언트 + 금색 이중 테두리 + 양쪽 별 + 글씨 외곽선·그림자
+      const base = new THREE.Color(v.logo);
+      const gr = c.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, '#' + base.clone().lerp(new THREE.Color('#ffffff'), 0.25).getHexString());
+      gr.addColorStop(0.55, v.logo);
+      gr.addColorStop(1, '#' + base.clone().multiplyScalar(0.55).getHexString());
+      c.fillStyle = gr;
       c.fillRect(0, 0, w, h);
-      c.fillStyle = '#ffffff';
-      c.font = '54px "Black Han Sans", "Jua", sans-serif';
+      c.fillStyle = 'rgba(255,255,255,0.06)';
+      for (let x = -h; x < w; x += 36) { c.beginPath(); c.moveTo(x, h); c.lineTo(x + h, 0); c.lineTo(x + h + 14, 0); c.lineTo(x + 14, h); c.fill(); }
+      c.strokeStyle = '#ffd23a';
+      c.lineWidth = 10;
+      c.strokeRect(9, 9, w - 18, h - 18);
+      c.strokeStyle = 'rgba(0,0,0,0.5)';
+      c.lineWidth = 3;
+      c.strokeRect(20, 20, w - 40, h - 40);
+      const star = (cx, cy, r) => {
+        c.beginPath();
+        for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.45 : r; const a = -Math.PI / 2 + (i * Math.PI) / 5; c.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+        c.closePath();
+        c.fillStyle = '#ffd23a'; c.fill();
+        c.lineWidth = 4; c.strokeStyle = '#3a1e00'; c.stroke();
+      };
+      star(80, h / 2, 34);
+      star(w - 80, h / 2, 34);
+      c.font = '104px "Black Han Sans", "Jua", sans-serif';
       c.textAlign = 'center';
       c.textBaseline = 'middle';
-      c.fillText(v.banner, w / 2, h / 2 + 2);
+      c.lineJoin = 'round';
+      c.fillStyle = 'rgba(0,0,0,0.45)';
+      c.fillText(v.banner, w / 2 + 5, h / 2 + 11);
+      c.lineWidth = 12;
+      c.strokeStyle = '#1a0a04';
+      c.strokeText(v.banner, w / 2, h / 2 + 5);
+      const tg = c.createLinearGradient(0, h * 0.2, 0, h * 0.8);
+      tg.addColorStop(0, '#ffffff');
+      tg.addColorStop(1, '#ffe9a0');
+      c.fillStyle = tg;
+      c.fillText(v.banner, w / 2, h / 2 + 5);
     });
     this.bannerTex = banner;
+    // 링을 둘러싼 LED 광고판(글씨가 천천히 흘러감)
+    const ledTex = canvasTex(4096, 128, (c, w, h) => {
+      c.fillStyle = '#05060c';
+      c.fillRect(0, 0, w, h);
+      const items = [
+        ['링의 왕', '#ffd23a'], ['★ KO ★', '#ff5a3a'], [v.banner, '#ffffff'], ['읽고 · 피하고 · 때려라!', '#5ad7ff'],
+        ['링의 왕', '#ffd23a'], ['카운터!', '#ff8a3a'], [v.name || v.banner, '#9dff7a'], ['챔피언을 향해!', '#ff7ad7'],
+      ];
+      const seg = w / items.length;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      items.forEach(([t, col], i) => {
+        const x0 = i * seg;
+        const bg = c.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, 'rgba(255,255,255,0.08)');
+        bg.addColorStop(1, 'rgba(255,255,255,0)');
+        c.fillStyle = bg;
+        c.fillRect(x0 + 4, 6, seg - 8, h - 12);
+        c.font = '64px "Black Han Sans", "Jua", sans-serif';
+        c.shadowColor = col;
+        c.shadowBlur = 18;
+        c.fillStyle = col;
+        c.fillText(t, x0 + seg / 2, h / 2 + 3, seg - 60); // 칸을 넘지 않게
+        c.shadowBlur = 0;
+      });
+      // LED 점 무늬
+      c.fillStyle = 'rgba(0,0,0,0.35)';
+      for (let y = 0; y < h; y += 4) c.fillRect(0, y, w, 1);
+      for (let x = 0; x < w; x += 4) c.fillRect(x, 0, 1, h);
+    });
+    ledTex.wrapS = THREE.RepeatWrapping;
+    ledTex.repeat.set(-2, 1); // 원통 안쪽에서 보므로 좌우를 뒤집어 글씨가 바로 읽히게
+    const led = new THREE.Mesh(new THREE.CylinderGeometry(6.7, 6.7, 0.9, 64, 1, true), new THREE.MeshBasicMaterial({ map: ledTex, side: THREE.BackSide }));
+    led.position.y = 0.0;
+    g.add(led);
+    const ledFrame = new THREE.Mesh(new THREE.CylinderGeometry(6.74, 6.74, 1.0, 64, 1, true), new THREE.MeshBasicMaterial({ color: 0x111118, side: THREE.BackSide }));
+    ledFrame.position.y = 0.0;
+    g.add(ledFrame);
+    this.led = led;
     for (const x of [-4.5, 4.5]) {
       const b = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.8), new THREE.MeshBasicMaterial({ map: banner }));
       b.position.set(x * 1.3, 4.6, -12);
@@ -260,9 +359,10 @@ export class Arena {
       o.traverse((n) => {
         if (n.isMesh || n.isSprite || n.isInstancedMesh) {
           if (n.geometry && !Object.values(GEO).includes(n.geometry)) n.geometry.dispose();
-          if (n.material) {
-            if (n.material.map && !n.material.map.userData.shared) n.material.map.dispose();
-            n.material.dispose();
+          const mats = Array.isArray(n.material) ? n.material : n.material ? [n.material] : [];
+          for (const m of new Set(mats)) {
+            if (m.map && !m.map.userData.shared) m.map.dispose();
+            m.dispose();
           }
         }
       });
@@ -320,6 +420,7 @@ export class Arena {
     this.updateCrowd(dt);
     const v = this.v;
     if (!v) return;
+    if (this.led) this.led.material.map.offset.x = -((this.time / 90000) % 1);
     // 플래시
     const rate = reduceFlash ? 0 : v.flash * (0.15 + this.excite * 1.5);
     for (const f of this.flashes) {
